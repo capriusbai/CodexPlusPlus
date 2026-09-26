@@ -541,10 +541,6 @@ impl BridgeRuntimeService for LauncherRuntimeService {
         Ok(aethercodex_core::model_catalog::read_codex_model_catalog().await)
     }
 
-    async fn ads(&self) -> anyhow::Result<Value> {
-        aethercodex_core::ads::fetch_ad_list().await
-    }
-
     async fn zed_remote_status(&self) -> anyhow::Result<Value> {
         Ok(aethercodex_core::zed_remote::zed_remote_status())
     }

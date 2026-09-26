@@ -77,8 +77,9 @@ AetherCodex 是 [Codex++](https://github.com/BigPizzaV3/CodexPlusPlus) 的重新
 - 新增 Linux 发布支持（Ubuntu 24.04 及以上，含 26.04）；
 - 自动更新指向本分支的 Release，不再拉取上游安装包。
 
-上游的赞助商、交流群和赞赏渠道属于上游项目，没有搬运到这里。需要支持原作者或
-加入上游社区，请直接访问[上游仓库](https://github.com/BigPizzaV3/CodexPlusPlus)。
+本分支移除了上游的推荐/广告功能和赞赏入口：不再拉取远端广告列表，界面里也没有
+赞赏码。上游的赞助商、交流群和赞赏渠道属于上游项目，需要支持原作者请直接访问
+[上游仓库](https://github.com/BigPizzaV3/CodexPlusPlus)。
 
 ## 交流与支持
 
@@ -198,18 +199,7 @@ experimental_bearer_token = "sk-..."
 
 增强功能在管理工具中统一开关。默认开启增强注入；关闭后不会注入 AetherCodex 菜单和脚本。
 
-如果启用中转注入模式，插件入口解锁和强制安装不再需要，界面会提示“中转注入模式下无需开启”。会话删除、导出、移动、Timeline、推荐内容和用户脚本等增强仍可继续使用。
-
-## 推荐内容
-
-推荐内容来自远程广告列表：
-
-```text
-https://raw.githubusercontent.com/BigPizzaV3/Ad-List/main/ads.json
-https://cdn.jsdelivr.net/gh/BigPizzaV3/Ad-List@main/ads.json
-```
-
-请求时会自动追加 `?v=时间戳` 绕开 CDN 旧缓存。推荐内容加载慢不会影响后端连接状态。
+如果启用中转注入模式，插件入口解锁和强制安装不再需要，界面会提示“中转注入模式下无需开启”。会话删除、导出、移动、Timeline 和用户脚本等增强仍可继续使用。
 
 ## 自动更新与安装包
 

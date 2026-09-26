@@ -80,9 +80,11 @@ What this fork changes:
 - Linux releases are added (Ubuntu 24.04 and newer, including 26.04);
 - automatic updates resolve against this fork's releases rather than upstream's.
 
+This fork removes upstream's recommendation/ad feature and donation entries:
+no remote ad list is fetched and no donation codes appear in the interface.
 Upstream's sponsors, chat groups and donation channels belong to the upstream
-project and were not carried over. To support the original author or join that
-community, go to the [upstream repository](https://github.com/BigPizzaV3/CodexPlusPlus).
+project; to support the original author, go to the
+[upstream repository](https://github.com/BigPizzaV3/CodexPlusPlus).
 
 ## Brand and interface
 
@@ -179,18 +181,7 @@ To return to the official login mode, use the clear API mode button in the Relay
 
 Enhancements are controlled in the manager. Enhancement injection is enabled by default. When disabled, AetherCodex will not inject its menu or scripts.
 
-When relay injection mode is active, plugin entry unlock and forced plugin install are unnecessary, and the UI will say so. Other enhancements, including session delete, export, move, Timeline, recommendations, and user scripts, can still be used.
-
-## Recommendations
-
-Recommended content is loaded from:
-
-```text
-https://raw.githubusercontent.com/BigPizzaV3/Ad-List/main/ads.json
-https://cdn.jsdelivr.net/gh/BigPizzaV3/Ad-List@main/ads.json
-```
-
-Requests automatically append a `?v=timestamp` cache buster to avoid stale CDN content. Slow recommendation loading does not mark the backend connection as failed.
+When relay injection mode is active, plugin entry unlock and forced plugin install are unnecessary, and the UI will say so. Other enhancements, including session delete, export, move, Timeline and user scripts, can still be used.
 
 ## Updates and Packages
 
