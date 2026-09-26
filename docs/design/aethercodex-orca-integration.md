@@ -3,7 +3,8 @@
 状态：**草案，待决策**　·　日期：2026-09-26　·　范围：内部使用
 
 调研对象：[`stablyai/orca`](https://github.com/stablyai/orca) @ `f0a3610`（v1.4.197，MIT，
-23,053 个 TS/TSX 文件）。本文所有关于 Orca 的结论均来自该 commit 的源码，不是文档转述。
+23,053 个 TS/TSX 文件）。本文关于 Orca 机制的结论均来自该 commit 的源码，不是文档转述；
+§1.1 另有用户本机（**v1.4.210**）的实测部署情况，两者不一致时以实机为准。
 
 > 内部使用，不做商业化，按指示不展开 License 讨论。仅记录一个事实以备将来：Orca 是 MIT，
 > 若某天需要对外分发，保留其 LICENSE 是单文件成本。
@@ -39,6 +40,67 @@
 
 **结论：两者不重叠，是同一条栈的上下两层。** AetherCodex 管"一个 Codex GUI 会话用得爽不爽"，
 Orca 管"十个 agent 并行跑得清不清楚"。这决定了联动方式是**分层协作**，不是功能合并。
+
+### 1.1 本机实测部署（2026-09-26 采集）
+
+以上是源码结论。下面是 `scripts/orca/collect-orca-info.sh` 在**用户本机**采到的实况，
+它把 §8 的第 1 条从"待确认"变成了已知，并且直接影响 §4.5 的做法。
+
+| 项 | 实测值 | 对设计的影响 |
+|---|---|---|
+| CLI | `~/.local/bin/orca-ide`，**v1.4.210** | 比本文调研的 v1.4.197 新 13 个版本。插件 API 未冻结（§3.2），必须按实机版本验证，不能按源码想当然 |
+| 安装 | 用户级，非系统包（`orca-ide` 无 deb 记录） | 升级由用户自己控制，我们的探测不能假设固定路径 |
+| 同名包 | `orca 50.2-0ubuntu0.1` = GNOME 屏幕阅读器，**无关** | 探测必须按 §0 第 3 条区分，绝不对它发命令 |
+| 插件目录 | **不存在**，一个插件都没装 | P4 会是本机第一个 Orca 插件：没有冲突对象，也没有先例可抄 |
+| 项目 | 2 个 git 项目（`摄政王`、`光胪寺`） | 都是真实在用的仓库，不是试验环境 |
+| 编排 run | 3 个，其中 1 个 legacy（inspect only） | 见下方「摄政王」 |
+| Claude 账号 | `claude.accounts: []`，且 rateLimits 报 `OAuth access token has been revoked` | **既有故障，与本计划无关。按 §0 一律不碰**，不"顺手修" |
+
+#### Orca 现在读的就是官方 `~/.codex`
+
+这是最重要的一条实测发现：
+
+```
+codex.accounts:      []
+codex.activeAccountId: null
+codex.systemDefault: { hasAuth: true, authKind: "oauth", workspaceLabel: "Personal (Pro)" }
+```
+
+Orca 没有建任何 per-account managed home，而是走 `systemDefault` —— 也就是**直接读
+`~/.codex`**。`CODEX_HOME` 环境变量未设置，`find` 也没在 Orca 数据目录下找到任何
+`codex*home*` 目录。
+
+所以 §2.1 不是预防性设计，而是**已经踩在线上**：如果 AetherCodex 按旧行为往
+`~/.codex/config.toml` 写中转配置，用户那两个项目、那个 coordinator 下面所有 Codex agent
+读到的配置会当场被改写。已实现的 `CODEX_HOME` 隔离（官方/中转二选一 + 官方只读）正是
+这条的解法，且是唯一不需要用户信任我们"改得对"的解法。
+
+#### 「摄政王」：实例级 Coordinator 已经存在
+
+`run_b07e3bee8874` 的 objective 写得很明确：
+
+> 摄政王：本机 Orca 实例级总 Coordinator，管理本实例所有项目和 agents，直接向 Owner 负责；
+> 不隶属于 AetherWorks 或任何业务项目。
+
+这改变了 §4.5 的做法：本机**已经有**一个实例级调度层，AetherCodex 不应该另起一个平行的
+编排入口，而应该作为一种 agent **注册进现有 coordinator 管的池子里**。§4.4 的 fan-out
+同理——从 Codex GUI 发起的并行任务应该落进既有 run，而不是新建一个孤立的 run。
+
+#### 用户自建的 adaptor：形态是「状态上报」
+
+采集到两处，且只有这两处：
+
+```
+~/.config/orca/omp-managed-status-extension/orca-agent-status.ts
+~/.orca/agent-hooks/                        # 权限 700，建于 09-16
+```
+
+两处都不是 Orca 官方插件目录（官方是 `<root>/plugins/`），和"我自己让 Orca 搭的"一致。
+命名指向 **agent status**，与源码里 hook server 单一持有 agent status store 的模型
+（§4.5 第 1 条）吻合：这套东西很可能已经是一个 status producer 的接入点。
+
+**若确实如此，§4.5 应当复用它，而不是另定一套上报协议。** 在读到源码之前这仍是推断——
+采集器已补上 `--with-sources`，见 §8 第 2 条。
 
 ## 2. 两个真实碰撞点
 
@@ -192,7 +254,9 @@ Codex App 页面里注入一块 Orca 面板，显示当前 run 的 agent 状态�
 在 Codex App 的输入框旁注入一个按钮：**「分发到 N 个 agent」**。
 
 - 点击 → 取当前输入框内容 → 优先用插件的 `terminal:send` 能力投递；
-  不可用则回退 `orca orchestration run-create` + `dispatch --prompt <内容>`。
+  不可用则回退 `orca-ide orchestration dispatch --prompt <内容>`。
+- **默认投进既有 run**（本机是「摄政王」那条，§1.1），`run-create` 只在用户明确要求
+  开新 run 时才用。凭空建 run 会在用户的调度视图里堆出一批孤立记录。
 - 效果：在熟悉的 Codex GUI 里写提示词，一键让 Claude Code / OpenCode / 另一个 Codex
   在各自 worktree 里并行跑，结果回到 4.2 的面板。
 
@@ -205,11 +269,15 @@ Codex App 页面里注入一块 Orca 面板，显示当前 run 的 agent 状态�
 注册 `aethercodex` 作为一种 agent，让"带中转注入和页面增强的 Codex GUI 会话"
 出现在 Orca 的 run 里，和 CLI agent 并排被编排。
 
-需要解决的三件事：
+需要解决的四件事：
 
+0. **挂进「摄政王」，不另起编排。** 本机已有实例级 coordinator（§1.1），AetherCodex 注册
+   为 agent 后应受它调度，出现在它管的池子里。不新建平行 run，不绕过它直接调度。
 1. **状态上报**：Orca 的 agent status 由执行宿主的 hook server 单一持有。我们作为新的
    producer 要写进那个 store，而不是自己维护一份。按
-   `docs/reference/agent-status-store.md` 的规矩来。
+   `docs/reference/agent-status-store.md` 的规矩来。**优先复用用户自建的
+   `orca-agent-status.ts` / `~/.orca/agent-hooks/`**（§1.1）——那已经是本机在用的
+   producer 接入点，另定一套协议等于把本机现有状态链路劈成两条。
 2. **生命周期**：Orca 期待 agent 能被启动、观察、停止。AetherCodex 的静默启动器天然能做
    前两件；"停止"要映射到关闭那个 Codex 窗口，且**不能误杀用户自己开的官方 Codex**
    —— 只能停我们自己启动的、记录了 PID 的实例。这是 §0 第 3 条的具体落地。
@@ -222,7 +290,7 @@ Codex App 页面里注入一块 Orca 面板，显示当前 run 的 agent 状态�
 
 | 阶段 | 内容 | 前置 | 规模 |
 |---|---|---|---|
-| P0 | Orca 探测（有没有装、版本、CLI 路径）+ `OrcaClient`（子进程 + JSON 解析 + 超时 + 降级） | — | 小 |
+| P0 | Orca 探测（有没有装、版本、CLI 路径）+ `OrcaClient`（子进程 + JSON 解析 + 超时 + 降级）。**必须认 `orca-ide` 而非 `orca`，并拒绝自述为屏幕阅读器的二进制**；基线版本按实机 v1.4.210 | — | 小 |
 | ~~P1~~ | ~~独立配置模式~~ → **已实现**：启动时选择 + CODEX_HOME 隔离 + auth 种子 + 写入保护 | — | 已完成 |
 | P2 | 4.1 配置导出（显式、带 diff 预览） | P1 | 小 |
 | P3 | 4.3 会话让路 | P0 | 小 |
@@ -251,7 +319,7 @@ Codex App 页面里注入一块 Orca 面板，显示当前 run 的 agent 状态�
 
 | # | 问题 | 决策 |
 |---|---|---|
-| ① | Orca 是否在用 | **已在用**（本机已部署） |
+| ① | Orca 是否在用 | **已在用**：v1.4.210，2 个真实项目，实例级 coordinator 在跑（§1.1） |
 | ② | P4 fan-out 做不做 | **做** |
 | ③ | config.toml 唯一作者契约 | **不接受**。两边配置都保留 → 改为 `CODEX_HOME` 隔离（§2.1） |
 | ④ | 注册成独立 Orca agent 类型 | **做**（§4.5） |
@@ -259,11 +327,20 @@ Codex App 页面里注入一块 Orca 面板，显示当前 run 的 agent 状态�
 
 ## 8. 待补充的信息
 
-1. **本机 Orca 的实际部署情况。** 设计基于 `stablyai/orca` @ `f0a3610` 的源码，
-   没有看过实际安装。需要确认：版本、安装方式、插件目录位置、`orca` CLI 是否在 PATH。
-2. **用户自建的 agent adaptor。** 这套东西是用户让 Orca 搭的，其接口形态会直接影响
-   §4.5 的设计——如果它已经定义了一种接入 agent 的方式，应当复用而不是另起炉灶。
-   在看到它之前，§4.5 只是基于 Orca 官方插件 API 的推断。
+1. ~~本机 Orca 的实际部署情况。~~ **已补**：见 §1.1。v1.4.210、用户级安装、零插件、
+   Orca 直读官方 `~/.codex`、已有实例级 coordinator「摄政王」。
+2. **用户自建 agent adaptor 的源码。** 路径已定位（§1.1），内容还没读到。采集器原来只带回
+   文件名，现已补上 `--with-sources`：
+
+   ```bash
+   bash scripts/orca/collect-orca-info.sh --with-sources > orca-info.txt
+   ```
+
+   它会把 `orca-agent-status.ts` 和 `~/.orca/agent-hooks/` 下的文本源码一并带出，
+   token 形态的值（`sk-*`、`gh*_*`、JWT、`Bearer`、以及 `*token`/`secret`/`password`
+   等键名的值）自动打码，二进制跳过。**打码是安全网不是保证，发之前请过一眼。**
+
+   在读到这份源码之前，§4.5 第 1 条的"复用"只是推断。
 3. ~~会话管理的双 home 读取标注。~~ **已补**：会话页和供应商页都带 profile 徽标
    （官方配置 `~/.codex` / 中转配置 `~/.aethercodex/codex-home`），中转下的空列表
    会明说"官方那边的记录没有丢失"。
