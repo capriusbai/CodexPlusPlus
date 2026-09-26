@@ -11,6 +11,7 @@ pub mod install;
 pub mod launcher;
 pub mod model_catalog;
 pub mod models;
+pub mod orca;
 pub mod paths;
 pub mod ports;
 pub mod protocol_proxy;

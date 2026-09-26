@@ -1761,6 +1761,58 @@ type Actions = {
   checkHealth: () => Promise<void>;
 };
 
+/// Orientation shown until the first launch has happened.
+///
+/// The overview opens on a diagnostics panel, which tells a first-time user
+/// nothing about what this app is: it manages and launches the Codex App, and
+/// the AI itself lives in the Codex App's own window. Someone who installed
+/// AetherCodex and went looking for a chat box here found nothing, so the
+/// overview now says where to go before it says what is healthy.
+///
+/// It disappears once a launch has been recorded, so it costs a returning user
+/// nothing.
+function FirstRunGuide({ overview }: { overview: OverviewResult | null }) {
+  if (!overview || overview.latest_launch) return null;
+  const codexFound = Boolean(overview.codex_version);
+  return (
+    <Panel>
+      <CardHead
+        title="AI 在 Codex App 的窗口里"
+        detail="这个窗口负责配置和治理，不是聊天界面"
+      />
+      <CardContent>
+        <div className="first-run-steps">
+          <p>
+            <strong>1.</strong> 点下面的「启动（官方配置）」。AetherCodex 会找到 Codex
+            App、带调试端口把它拉起来，并注入页面增强。
+          </p>
+          <p>
+            <strong>2.</strong> Codex App 的窗口打开后，就在<strong>那个窗口</strong>
+            里对话。它的标题栏附近会多出一个 AetherCodex 菜单。
+          </p>
+          <p>
+            <strong>3.</strong> 回到这个窗口来配供应商、管会话、装脚本。
+          </p>
+        </div>
+        {!codexFound ? (
+          <div className="hint-line">
+            <Bell className="h-4 w-4" />
+            <span>
+              还没检测到 Codex App。先点「检查」；仍然找不到就去「设置」手填 Codex App
+              路径，Linux 下可以直接填 <code>.AppImage</code> 文件。启动器需要它才有东西可启动。
+            </span>
+          </div>
+        ) : (
+          <div className="hint-line">
+            <CheckCircle2 className="h-4 w-4" />
+            <span>已检测到 Codex App {overview.codex_version}，可以直接启动。</span>
+          </div>
+        )}
+      </CardContent>
+    </Panel>
+  );
+}
+
 function OverviewScreen({
   overview,
   actions,
@@ -1771,6 +1823,7 @@ function OverviewScreen({
   const health = healthItems(overview);
   return (
     <>
+      <FirstRunGuide overview={overview} />
       <Panel>
         <CardHead title="健康检查" detail="概览只展示关键问题，具体配置在对应页面处理" />
         <CardContent>
@@ -1810,7 +1863,10 @@ function OverviewScreen({
         </CardContent>
       </Panel>
       <Panel>
-        <CardHead title="最近启动" detail={overview?.logs_path ?? "暂无状态文件"} />
+        <CardHead
+          title="启动 Codex"
+          detail={overview?.logs_path ?? "暂无状态文件"}
+        />
         <CardContent>
           <LatestLaunch status={overview?.latest_launch ?? null} />
           <Toolbar>
