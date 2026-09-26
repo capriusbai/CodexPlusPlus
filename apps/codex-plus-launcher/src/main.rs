@@ -135,6 +135,8 @@ async fn activate_existing_codex_app(options: &LaunchOptions) -> anyhow::Result<
         hooks.start_helper(options.helper_port).await?;
     }
     let process_ids = codex_plus_core::watcher::find_codex_processes();
+    // Only the Windows branch below activates an existing window.
+    #[cfg_attr(not(windows), allow(unused_mut))]
     let mut activated = false;
     #[cfg(windows)]
     {

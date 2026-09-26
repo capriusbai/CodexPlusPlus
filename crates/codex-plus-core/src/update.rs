@@ -151,16 +151,25 @@ pub fn select_update_asset(assets: &[(String, String)]) -> Option<ReleaseAsset> 
         .iter()
         .filter(|(name, url)| !name.trim().is_empty() && !url.trim().is_empty())
         .collect::<Vec<_>>();
+    // Lower rank wins, and the first asset keeps the tie so release ordering
+    // stays meaningful (Linux, for example, prefers a `.deb` over a tarball).
+    let mut best: Option<(u8, ReleaseAsset)> = None;
     for (name, url) in &named {
-        let lower = name.to_ascii_lowercase();
-        if platform_asset_rank(&lower) == 0 {
-            return Some(ReleaseAsset {
-                name: (*name).clone(),
-                browser_download_url: (*url).clone(),
-            });
+        let rank = platform_asset_rank(&name.to_ascii_lowercase());
+        if rank >= UNSUPPORTED_ASSET_RANK {
+            continue;
+        }
+        if best.as_ref().is_none_or(|(best_rank, _)| rank < *best_rank) {
+            best = Some((
+                rank,
+                ReleaseAsset {
+                    name: (*name).clone(),
+                    browser_download_url: (*url).clone(),
+                },
+            ));
         }
     }
-    None
+    best.map(|(_, asset)| asset)
 }
 
 pub async fn fetch_latest_release(latest_json_url: &str) -> anyhow::Result<Release> {
@@ -249,6 +258,8 @@ pub fn safe_asset_name(name: &str) -> anyhow::Result<String> {
     Ok(file_name.to_string())
 }
 
+const UNSUPPORTED_ASSET_RANK: u8 = 2;
+
 fn platform_asset_rank(name: &str) -> u8 {
     if cfg!(windows) && is_windows_installer_asset(name) {
         return 0;
@@ -256,7 +267,15 @@ fn platform_asset_rank(name: &str) -> u8 {
     if cfg!(target_os = "macos") && is_macos_installer_asset(name) {
         return 0;
     }
-    2
+    if cfg!(all(unix, not(target_os = "macos"))) {
+        if is_linux_package_asset(name) {
+            return 0;
+        }
+        if is_linux_archive_asset(name) {
+            return 1;
+        }
+    }
+    UNSUPPORTED_ASSET_RANK
 }
 
 fn is_windows_installer_asset(name: &str) -> bool {
@@ -271,6 +290,38 @@ fn is_windows_installer_asset(name: &str) -> bool {
 
 fn is_macos_installer_asset(name: &str) -> bool {
     name.contains("codex") && name.contains("plus") && name.ends_with(".dmg")
+}
+
+fn is_linux_package_asset(name: &str) -> bool {
+    is_codex_asset(name) && name.ends_with(".deb") && matches_current_arch(name)
+}
+
+fn is_linux_archive_asset(name: &str) -> bool {
+    is_codex_asset(name)
+        && (name.ends_with(".tar.gz") || name.ends_with(".tgz"))
+        && matches_current_arch(name)
+}
+
+fn is_codex_asset(name: &str) -> bool {
+    name.contains("codex") && name.contains("plus")
+}
+
+/// Linux releases ship one artifact per architecture, so an asset is only a
+/// candidate when its name carries the architecture this build runs on.
+fn matches_current_arch(name: &str) -> bool {
+    current_arch_tokens()
+        .iter()
+        .any(|token| name.contains(token))
+}
+
+fn current_arch_tokens() -> &'static [&'static str] {
+    if cfg!(target_arch = "aarch64") {
+        &["arm64", "aarch64"]
+    } else if cfg!(target_arch = "x86_64") {
+        &["x64", "amd64", "x86_64"]
+    } else {
+        &[]
+    }
 }
 
 pub fn launch_installer(path: &Path) -> anyhow::Result<()> {
@@ -293,7 +344,25 @@ pub fn launch_installer(path: &Path) -> anyhow::Result<()> {
             .map_err(|error| anyhow::anyhow!("打开 DMG 失败：{error}"))
     }
 
-    #[cfg(all(not(windows), not(target_os = "macos")))]
+    // A `.deb` (or tarball) is handed to the desktop's package handler rather
+    // than executed, so installing stays an explicit, user-confirmed step.
+    #[cfg(all(unix, not(target_os = "macos")))]
+    {
+        std::process::Command::new("xdg-open")
+            .arg(path)
+            .stdout(std::process::Stdio::null())
+            .stderr(std::process::Stdio::null())
+            .spawn()
+            .map(|_| ())
+            .map_err(|error| {
+                anyhow::anyhow!(
+                    "打开安装包失败：{error}（可手动执行 sudo apt install {}）",
+                    path.display()
+                )
+            })
+    }
+
+    #[cfg(not(any(windows, unix)))]
     {
         let _ = path;
         anyhow::bail!("当前平台不支持启动安装包")

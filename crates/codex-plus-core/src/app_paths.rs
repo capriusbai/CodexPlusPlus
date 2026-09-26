@@ -52,6 +52,107 @@ fn windows_app_package_roots() -> Vec<PathBuf> {
     roots
 }
 
+/// Executable names an unpacked Codex App uses on Linux/BSD. Windows ships
+/// `Codex.exe`, macOS ships `Codex` inside the bundle, and the Linux builds
+/// ship an extension-less binary next to the Electron resources.
+pub const UNIX_CODEX_BINARY_NAMES: [&str; 3] = ["Codex", "codex", "codex-app"];
+
+/// Directory names a Codex App install is commonly unpacked into on Linux.
+const LINUX_CODEX_APP_DIR_NAMES: [&str; 6] = [
+    "Codex",
+    "codex",
+    "OpenAI/Codex",
+    "openai-codex",
+    "codex-app",
+    "Codex/app",
+];
+
+pub fn linux_app_search_roots() -> Vec<PathBuf> {
+    let mut roots = vec![
+        PathBuf::from("/opt"),
+        PathBuf::from("/usr/lib"),
+        PathBuf::from("/usr/lib64"),
+        PathBuf::from("/usr/share"),
+        PathBuf::from("/usr/local/lib"),
+        PathBuf::from("/usr/local/share"),
+    ];
+    if let Some(home) = directories::BaseDirs::new().map(|dirs| dirs.home_dir().to_path_buf()) {
+        roots.push(home.join(".local/share"));
+        roots.push(home.join(".local/lib"));
+        roots.push(home.join("Applications"));
+        roots.push(home.join("applications"));
+        roots.push(home.join(".local/bin"));
+    }
+    roots
+}
+
+/// Look for an unpacked Codex App (or a Codex `.AppImage`) under `search_roots`.
+///
+/// Only directories that actually hold a Codex executable are accepted, so a
+/// bare `codex` CLI on `PATH` is never mistaken for the desktop app.
+pub fn find_linux_codex_app(search_roots: &[PathBuf]) -> Option<PathBuf> {
+    for root in search_roots {
+        for candidate in linux_app_candidates(root) {
+            if candidate.is_dir() && unix_codex_binary_in(&candidate).is_some() {
+                let nested = candidate.join("app");
+                if unix_codex_binary_in(&nested).is_some() {
+                    return Some(nested);
+                }
+                return Some(candidate);
+            }
+        }
+        if let Some(app_image) = find_codex_app_image(root) {
+            return Some(app_image);
+        }
+    }
+    None
+}
+
+pub fn find_linux_codex_app_default() -> Option<PathBuf> {
+    find_linux_codex_app(&linux_app_search_roots())
+}
+
+fn linux_app_candidates(root: &Path) -> Vec<PathBuf> {
+    if is_app_image(root) {
+        return vec![root.to_path_buf()];
+    }
+    let mut candidates = vec![root.to_path_buf()];
+    candidates.extend(LINUX_CODEX_APP_DIR_NAMES.iter().map(|name| root.join(name)));
+    candidates
+}
+
+fn find_codex_app_image(root: &Path) -> Option<PathBuf> {
+    if is_app_image(root) {
+        return root.is_file().then(|| root.to_path_buf());
+    }
+    let mut matches = std::fs::read_dir(root)
+        .ok()?
+        .filter_map(Result::ok)
+        .map(|entry| entry.path())
+        .filter(|path| path.is_file() && is_app_image(path))
+        .filter(|path| {
+            path.file_name()
+                .and_then(OsStr::to_str)
+                .is_some_and(|name| name.to_ascii_lowercase().contains("codex"))
+        })
+        .collect::<Vec<_>>();
+    matches.sort();
+    matches.pop()
+}
+
+pub fn is_app_image(path: &Path) -> bool {
+    path.extension()
+        .and_then(OsStr::to_str)
+        .is_some_and(|extension| extension.eq_ignore_ascii_case("AppImage"))
+}
+
+fn unix_codex_binary_in(app_dir: &Path) -> Option<PathBuf> {
+    UNIX_CODEX_BINARY_NAMES
+        .iter()
+        .map(|name| app_dir.join(name))
+        .find(|candidate| candidate.is_file())
+}
+
 pub fn user_data_candidates() -> Vec<PathBuf> {
     user_data_candidates_from(
         std::env::var_os("LOCALAPPDATA").as_deref().map(Path::new),
@@ -96,9 +197,11 @@ pub fn resolve_codex_app_dir(app_dir: Option<&Path>) -> Option<PathBuf> {
     if cfg!(target_os = "macos") {
         return find_macos_codex_app_default();
     }
+    if cfg!(all(unix, not(target_os = "macos"))) {
+        return find_linux_codex_app_default();
+    }
     // Windows: try MS Store version first, then standalone install
-    find_latest_codex_app_dir_default()
-        .or_else(|| find_standalone_codex_app_dir())
+    find_latest_codex_app_dir_default().or_else(|| find_standalone_codex_app_dir())
 }
 
 /// Search for standalone Codex installations (non-MS Store).
@@ -158,13 +261,19 @@ pub fn normalize_codex_app_path(path: &Path) -> Option<PathBuf> {
         return Some(path.to_path_buf());
     }
 
+    // A Codex `.AppImage` is a single self-contained executable, so it acts as
+    // its own app directory.
+    if is_app_image(path) {
+        return Some(path.to_path_buf());
+    }
+
     if path.is_file() {
         return path.parent().map(Path::to_path_buf);
     }
 
     let upper = path.join("Codex.exe");
     let lower = path.join("codex.exe");
-    if upper.exists() || lower.exists() {
+    if upper.exists() || lower.exists() || unix_codex_binary_in(path).is_some() {
         return Some(path.to_path_buf());
     }
 
@@ -172,7 +281,7 @@ pub fn normalize_codex_app_path(path: &Path) -> Option<PathBuf> {
     if nested_app.is_dir() {
         let upper = nested_app.join("Codex.exe");
         let lower = nested_app.join("codex.exe");
-        if upper.exists() || lower.exists() {
+        if upper.exists() || lower.exists() || unix_codex_binary_in(&nested_app).is_some() {
             return Some(nested_app);
         }
     }
@@ -188,12 +297,18 @@ pub fn build_codex_executable(app_dir: &Path) -> PathBuf {
     if app_dir.extension() == Some(OsStr::new("app")) {
         return app_dir.join("Contents").join("MacOS").join("Codex");
     }
+    if is_app_image(app_dir) {
+        return app_dir.to_path_buf();
+    }
     let upper = app_dir.join("Codex.exe");
     if upper.exists() {
-        upper
-    } else {
-        app_dir.join("codex.exe")
+        return upper;
     }
+    let lower = app_dir.join("codex.exe");
+    if lower.exists() || cfg!(windows) {
+        return lower;
+    }
+    unix_codex_binary_in(app_dir).unwrap_or_else(|| app_dir.join("codex"))
 }
 
 pub fn codex_app_version(app_dir: &Path) -> Option<String> {

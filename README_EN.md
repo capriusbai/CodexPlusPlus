@@ -25,13 +25,45 @@ Download the latest installer from [GitHub Releases](https://github.com/BigPizza
 - Windows: `CodexPlusPlus-*-windows-x64-setup.exe`
 - macOS Intel: `CodexPlusPlus-*-macos-x64.dmg`
 - macOS Apple Silicon: `CodexPlusPlus-*-macos-arm64.dmg`
+- Linux x86_64: `CodexPlusPlus-*-linux-x64.deb` or `CodexPlusPlus-*-linux-x64.tar.gz`
+- Linux arm64: `CodexPlusPlus-*-linux-arm64.deb` or `CodexPlusPlus-*-linux-arm64.tar.gz`
 
 After installation, two entry points are available:
 
 - `Codex++`: a silent launcher. It does not show the manager UI and only starts Codex with Codex++ injection.
 - `Codex++ Manager`: a Tauri control panel for launch, diagnostics, repair, updates, relay injection, enhancements, and user scripts.
 
-The Windows installer creates desktop and Start Menu shortcuts. The macOS DMG installs `/Applications/Codex++.app` and `/Applications/Codex++ 管理工具.app`.
+The Windows installer creates desktop and Start Menu shortcuts. The macOS DMG installs `/Applications/Codex++.app` and `/Applications/Codex++ 管理工具.app`. The Linux `.deb` installs into `/usr/lib/codex-plus-plus/` and registers `Codex++` and `Codex++ Manager` in the application menu.
+
+### Ubuntu 26.04 / 24.04, Debian 13+
+
+The `.deb` targets Ubuntu 24.04 and newer (including 26.04) and Debian 13 and newer, and relies on the WebKitGTK 4.1 runtime those releases ship:
+
+```bash
+sudo apt install ./CodexPlusPlus-1.3.0-linux-x64.deb
+```
+
+`apt` pulls in the runtime dependencies (`libwebkit2gtk-4.1-0`, `libgtk-3-0t64`, and friends). If you install with `dpkg -i` instead and it reports missing dependencies, run `sudo apt -f install`.
+
+To remove it:
+
+```bash
+sudo apt remove codex-plus-plus
+```
+
+### Other distributions (tar.gz)
+
+The `.tar.gz` needs no package manager and installs into `~/.local` for the current user:
+
+```bash
+tar -xzf CodexPlusPlus-1.3.0-linux-x64.tar.gz
+cd CodexPlusPlus-1.3.0-linux-x64
+./install.sh            # or PREFIX=/opt/codex-plus-plus ./install.sh
+```
+
+Make sure the distribution provides the WebKitGTK 4.1 runtime first (`libwebkit2gtk-4.1-0` on Ubuntu/Debian, `webkit2gtk4.1` on Fedora, `webkit2gtk-4.1` on Arch). Run `./uninstall.sh` from the same directory to remove it.
+
+`install.sh` calls `codex-plus-plus-manager --install-entrypoints` to write the user-level `.desktop` entries. You can rerun that command at any time to rebuild them, or pass `--uninstall-entrypoints` to remove them.
 
 ## Sponsors
 
@@ -134,6 +166,7 @@ The Windows installer creates desktop and Start Menu shortcuts. The macOS DMG in
 - GitHub Release updates. Both the manager and silent launcher can detect available updates.
 - Windows single instance, no console window, administrator manifest, and system Desktop path detection.
 - Separate macOS x64 and arm64 DMGs. The silent launcher hides its Dock icon.
+- Separate Linux x64 and arm64 `.deb` packages plus a portable `.tar.gz`, registering XDG `.desktop` entries and a hicolor icon.
 
 ## Relay Injection
 
@@ -195,9 +228,9 @@ Requests automatically append a `?v=timestamp` cache buster to avoid stale CDN c
 
 ## Updates and Packages
 
-Codex++ publishes installers through GitHub Releases. Windows builds an NSIS installer, while macOS builds separate Intel x64 and Apple Silicon arm64 DMGs.
+Codex++ publishes installers through GitHub Releases. Windows builds an NSIS installer, macOS builds separate Intel x64 and Apple Silicon arm64 DMGs, and Linux builds `.deb` and `.tar.gz` artifacts for x64 and arm64.
 
-The manager's About page can check and start updates. When the silent launcher finds a new version, it opens the manager directly on the update prompt.
+The manager's About page can check and start updates. When the silent launcher finds a new version, it opens the manager directly on the update prompt. Only assets matching the current OS and CPU architecture are offered: on Linux the `.deb` wins, falling back to the same-architecture `.tar.gz` when no matching `.deb` exists.
 
 ## Data Locations
 
@@ -241,6 +274,28 @@ Unsigned and unnotarized builds may be blocked by Gatekeeper. Allow the app in S
 
 Yes. Releases provide both `macos-x64.dmg` and `macos-arm64.dmg`. Intel Macs should use the x64 package, while Apple Silicon Macs should use the arm64 package.
 
+### The manager window is blank on Linux
+
+That is a WebKitGTK rendering problem, not an injection failure. Try disabling the accelerated renderer first:
+
+```bash
+WEBKIT_DISABLE_DMABUF_RENDERER=1 codex-plus-plus-manager
+```
+
+Since Ubuntu 24.04 the kernel ships `kernel.apparmor_restrict_unprivileged_userns=1`, which stops processes that rely on the bubblewrap sandbox from creating a user namespace. The Codex++ manager itself does not use that sandbox, but the Codex App it launches (Electron/Chromium) can be affected. If Codex itself fails to start, load the profile Ubuntu ships for this:
+
+```bash
+sudo apt install apparmor-profiles
+sudo install -m 0644 /usr/share/apparmor/extra-profiles/bwrap-userns-restrict /etc/apparmor.d/bwrap-userns-restrict
+sudo apparmor_parser -r /etc/apparmor.d/bwrap-userns-restrict
+```
+
+### Codex++ cannot find the Codex App on Linux
+
+Linux has no fixed install location like the Microsoft Store or `/Applications`, so Codex++ looks under `/opt`, `/usr/lib`, `/usr/share`, `~/.local/share`, and `~/Applications` for a directory holding a Codex executable (`Codex`, `codex`, or `codex-app`), plus any `.AppImage` whose name contains `codex`.
+
+Only directories that really contain an executable are accepted, so a `codex` CLI on `PATH` is never mistaken for the desktop app. If detection fails, set the Codex App path manually in the manager's settings — an `.AppImage` file path works too.
+
 ## Development
 
 ```bash
@@ -271,7 +326,18 @@ crates/
 scripts/installer/
   windows/CodexPlusPlus.nsi     Windows NSIS installer
   macos/package-dmg.sh          macOS DMG packager
+  linux/package-linux.sh        Linux .deb and .tar.gz packager
 ```
+
+Building the Linux artifacts locally (run `cargo build --release` first):
+
+```bash
+sudo apt install libwebkit2gtk-4.1-dev libgtk-3-dev librsvg2-dev desktop-file-utils
+cargo build --release
+bash scripts/installer/linux/package-linux.sh 1.3.0     # architecture defaults to the host; pass x64 / arm64 to override
+```
+
+Artifacts land in `dist/linux/`. CI pins the build to `ubuntu-24.04`: its glibc and WebKitGTK 4.1 soname are the oldest the artifacts have to support, and newer Ubuntu releases (25.10, 26.04) stay backwards compatible.
 
 ## Community and Support
 

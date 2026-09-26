@@ -2,6 +2,7 @@ use std::path::{Path, PathBuf};
 
 use serde::{Deserialize, Serialize};
 
+pub mod linux;
 pub mod macos;
 pub mod windows;
 
@@ -9,6 +10,12 @@ pub const SILENT_NAME: &str = "Codex++";
 pub const MANAGER_NAME: &str = "Codex++ 管理工具";
 pub const SILENT_BINARY: &str = "codex-plus-plus";
 pub const MANAGER_BINARY: &str = "codex-plus-plus-manager";
+/// Stable freedesktop application ids. Unlike the Windows shortcut and macOS
+/// bundle names these stay ASCII so packaged installs and manager-managed
+/// installs resolve to the same files.
+pub const LINUX_SILENT_DESKTOP_ID: &str = "codex-plus-plus";
+pub const LINUX_MANAGER_DESKTOP_ID: &str = "codex-plus-plus-manager";
+pub const LINUX_ICON_NAME: &str = "codex-plus-plus";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
@@ -113,6 +120,10 @@ pub fn build_macos_app_bundle(options: &InstallOptions, manager: bool) -> MacosA
     macos::build_app_bundle(options, manager)
 }
 
+pub fn build_linux_entrypoint_plan(options: &InstallOptions) -> linux::LinuxEntrypointPlan {
+    linux::build_linux_entrypoint_plan(options)
+}
+
 pub fn remove_owned_data() -> std::io::Result<()> {
     let dir = crate::paths::default_app_state_dir();
     if dir.exists() {
@@ -134,7 +145,12 @@ pub fn default_install_root() -> Option<PathBuf> {
         return Some(PathBuf::from("/Applications"));
     }
 
-    #[cfg(not(any(windows, target_os = "macos")))]
+    #[cfg(all(unix, not(target_os = "macos")))]
+    {
+        return Some(linux::user_applications_dir());
+    }
+
+    #[cfg(not(any(windows, unix)))]
     {
         directories::UserDirs::new().and_then(|dirs| dirs.desktop_dir().map(PathBuf::from))
     }
@@ -145,6 +161,8 @@ pub fn default_install_root_strategy() -> &'static str {
         "windows-known-folder"
     } else if cfg!(target_os = "macos") {
         "macos-applications"
+    } else if cfg!(unix) {
+        "xdg-applications"
     } else {
         "user-dirs-desktop"
     }
@@ -161,7 +179,12 @@ fn platform_install(options: &InstallOptions) -> anyhow::Result<()> {
         macos::install_app_bundles(options)
     }
 
-    #[cfg(not(any(windows, target_os = "macos")))]
+    #[cfg(all(unix, not(target_os = "macos")))]
+    {
+        linux::install_desktop_entries(options)
+    }
+
+    #[cfg(not(any(windows, unix)))]
     {
         let _ = options;
         anyhow::bail!("当前平台暂不支持安装 Codex++ 入口")
@@ -179,7 +202,12 @@ fn platform_uninstall(options: &InstallOptions) -> anyhow::Result<()> {
         macos::uninstall_app_bundles(options)
     }
 
-    #[cfg(not(any(windows, target_os = "macos")))]
+    #[cfg(all(unix, not(target_os = "macos")))]
+    {
+        linux::uninstall_desktop_entries(options)
+    }
+
+    #[cfg(not(any(windows, unix)))]
     {
         let _ = options;
         anyhow::bail!("当前平台暂不支持卸载 Codex++ 入口")
@@ -214,7 +242,22 @@ fn entrypoint_candidates(root: &Option<PathBuf>, manager: bool) -> Vec<PathBuf> 
     } else if cfg!(target_os = "macos") {
         vec![root.join(format!("{name}.app"))]
     } else {
-        vec![root.join(format!("{name}.desktop"))]
+        // A packaged install (.deb) owns the entries under /usr, so look there
+        // too before reporting the user-level entry as missing.
+        let id = if manager {
+            LINUX_MANAGER_DESKTOP_ID
+        } else {
+            LINUX_SILENT_DESKTOP_ID
+        };
+        let file_name = format!("{id}.desktop");
+        let mut candidates = vec![root.join(&file_name)];
+        candidates.extend(
+            linux::system_applications_dirs()
+                .into_iter()
+                .filter(|dir| Some(dir.as_path()) != Some(root.as_path()))
+                .map(|dir| dir.join(&file_name)),
+        );
+        candidates
     }
 }
 

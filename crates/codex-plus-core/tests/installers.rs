@@ -1,7 +1,7 @@
 use codex_plus_core::install::{
-    InstallOptions, SILENT_BINARY, app_bundle_names, build_macos_app_bundle,
-    build_windows_entrypoint_plan, companion_binary_path_from_exe, default_install_root_strategy,
-    shortcut_names,
+    InstallOptions, SILENT_BINARY, app_bundle_names, build_linux_entrypoint_plan,
+    build_macos_app_bundle, build_windows_entrypoint_plan, companion_binary_path_from_exe,
+    default_install_root_strategy, shortcut_names,
 };
 
 #[test]
@@ -123,6 +123,48 @@ fn windows_default_install_root_uses_known_folder_before_userprofile_desktop() {
     } else if cfg!(target_os = "macos") {
         assert_eq!(strategy, "macos-applications");
     } else {
-        assert_eq!(strategy, "user-dirs-desktop");
+        assert_eq!(strategy, "xdg-applications");
     }
+}
+
+#[test]
+fn linux_entrypoint_plan_contains_both_desktop_entries() {
+    let options = InstallOptions {
+        install_root: Some("/home/tester/.local/share/applications".into()),
+        launcher_path: Some("/usr/lib/codex-plus-plus/codex-plus-plus".into()),
+        manager_path: Some("/usr/lib/codex-plus-plus/codex-plus-plus-manager".into()),
+        remove_owned_data: false,
+    };
+
+    let plan = build_linux_entrypoint_plan(&options);
+
+    assert_eq!(
+        plan.silent_entry.path,
+        std::path::Path::new("/home/tester/.local/share/applications/codex-plus-plus.desktop")
+    );
+    assert_eq!(
+        plan.manager_entry.path,
+        std::path::Path::new(
+            "/home/tester/.local/share/applications/codex-plus-plus-manager.desktop"
+        )
+    );
+    assert_eq!(
+        plan.launcher_path,
+        "/usr/lib/codex-plus-plus/codex-plus-plus"
+    );
+    assert_eq!(
+        plan.manager_path,
+        "/usr/lib/codex-plus-plus/codex-plus-plus-manager"
+    );
+    assert_eq!(plan.icon_name, "codex-plus-plus");
+    assert!(
+        plan.silent_entry
+            .contents
+            .contains("Exec=\"/usr/lib/codex-plus-plus/codex-plus-plus\"")
+    );
+    assert!(
+        plan.manager_entry
+            .contents
+            .contains("Exec=\"/usr/lib/codex-plus-plus/codex-plus-plus-manager\"")
+    );
 }

@@ -1,5 +1,17 @@
 # 更新日志
 
+## 1.3.0 - 2026-09-26
+
+- 新增 Linux 发布支持：Release 会同时产出 x64 / arm64 的 `.deb` 与便携 `.tar.gz`，适用于 Ubuntu 24.04 及以上（含 26.04）和 Debian 13 及以上。
+- 新增 `scripts/installer/linux/package-linux.sh`，构建 `.deb`（含依赖声明、`postinst`/`postrm`、`/usr/bin` 软链接、copyright 与 changelog）和便携压缩包（含 `install.sh` / `uninstall.sh`），并在打包后校验产物结构。
+- 新增 Linux 入口安装能力：按 XDG 规范写入 `codex-plus-plus.desktop` / `codex-plus-plus-manager.desktop` 与 hicolor 图标，支持安装、修复、卸载，并能识别 `.deb` 安装在 `/usr/share/applications` 下的入口。
+- 管理工具新增 `--install-entrypoints` / `--uninstall-entrypoints` 命令行参数，可在无桌面会话下管理入口，供 `.tar.gz` 安装脚本使用。
+- 新增 Linux 下的 Codex App 自动识别：扫描 `/opt`、`/usr/lib`、`/usr/share`、`~/.local/share`、`~/Applications` 等目录中真正包含 Codex 可执行文件的目录，并支持把 `.AppImage` 当作 app 路径；`PATH` 上的 `codex` CLI 不会被误判为桌面版。
+- 自动更新在 Linux 上按架构挑选安装包，优先 `.deb`，回退同架构 `.tar.gz`，并通过 `xdg-open` 交给系统包管理器安装。
+- 修复管理工具在 Linux 上打开外部链接时调用 macOS 的 `open` 而失败的问题，改为 `xdg-open`。
+- CI 新增 Linux 打包任务（`ubuntu-24.04` / `ubuntu-24.04-arm`），在 PR 构建和 Release 流程中都会构建、安装并验证 `.deb` 入口注册。
+- 版本号更新到 `1.3.0`，同步 Rust workspace、Tauri、前端 package 和后端展示版本。
+
 ## 1.2.4 - 2026-06-08
 
 - 新增 Zed 远程项目记录能力，支持维护 Codex++ 可识别的远程项目最近列表，并为远程工作区打开提供更稳定的回退策略。

@@ -28,7 +28,9 @@ fn github_payload_selects_platform_installer() {
             {"name": "source.zip", "browser_download_url": "https://example.test/source.zip"},
             {"name": "codex-plus-plus-manager.exe", "browser_download_url": "https://example.test/manager.exe"},
             {"name": "CodexPlusPlus_1.0.9_x64-setup.exe", "browser_download_url": "https://example.test/setup.exe"},
-            {"name": "CodexPlusPlus_1.0.9_x64.dmg", "browser_download_url": "https://example.test/app.dmg"}
+            {"name": "CodexPlusPlus_1.0.9_x64.dmg", "browser_download_url": "https://example.test/app.dmg"},
+            {"name": "CodexPlusPlus-1.0.9-linux-x64.deb", "browser_download_url": "https://example.test/app.deb"},
+            {"name": "CodexPlusPlus-1.0.9-linux-arm64.deb", "browser_download_url": "https://example.test/app-arm64.deb"}
         ]
     }))
     .unwrap();
@@ -44,6 +46,16 @@ fn github_payload_selects_platform_installer() {
             release.asset_name.as_deref(),
             Some("CodexPlusPlus_1.0.9_x64.dmg")
         );
+    } else if cfg!(all(unix, target_arch = "x86_64")) {
+        assert_eq!(
+            release.asset_name.as_deref(),
+            Some("CodexPlusPlus-1.0.9-linux-x64.deb")
+        );
+    } else if cfg!(all(unix, target_arch = "aarch64")) {
+        assert_eq!(
+            release.asset_name.as_deref(),
+            Some("CodexPlusPlus-1.0.9-linux-arm64.deb")
+        );
     } else {
         assert_eq!(release.asset_name.as_deref(), None);
     }
@@ -58,7 +70,9 @@ fn latest_json_payload_selects_platform_installer_without_github_api_shape() {
         "assets": [
             {"name": "source.zip", "url": "https://example.test/source.zip"},
             {"name": "CodexPlusPlus-1.1.6-windows-x64-setup.exe", "url": "https://example.test/setup.exe"},
-            {"name": "CodexPlusPlus-1.1.6-macos-x64.dmg", "url": "https://example.test/app.dmg"}
+            {"name": "CodexPlusPlus-1.1.6-macos-x64.dmg", "url": "https://example.test/app.dmg"},
+            {"name": "CodexPlusPlus-1.1.6-linux-x64.tar.gz", "url": "https://example.test/app-x64.tar.gz"},
+            {"name": "CodexPlusPlus-1.1.6-linux-arm64.tar.gz", "url": "https://example.test/app-arm64.tar.gz"}
         ]
     }))
     .unwrap();
@@ -74,6 +88,16 @@ fn latest_json_payload_selects_platform_installer_without_github_api_shape() {
         assert_eq!(
             release.asset_name.as_deref(),
             Some("CodexPlusPlus-1.1.6-macos-x64.dmg")
+        );
+    } else if cfg!(all(unix, target_arch = "x86_64")) {
+        assert_eq!(
+            release.asset_name.as_deref(),
+            Some("CodexPlusPlus-1.1.6-linux-x64.tar.gz")
+        );
+    } else if cfg!(all(unix, target_arch = "aarch64")) {
+        assert_eq!(
+            release.asset_name.as_deref(),
+            Some("CodexPlusPlus-1.1.6-linux-arm64.tar.gz")
         );
     } else {
         assert_eq!(release.asset_name.as_deref(), None);
@@ -107,6 +131,63 @@ fn asset_selection_prefers_current_platform_artifacts() {
     } else if cfg!(target_os = "macos") {
         let selected = select_update_asset(&assets).unwrap();
         assert_eq!(selected.name, "CodexPlusPlus_1.0.9_x64.dmg");
+    } else {
+        assert!(select_update_asset(&assets).is_none());
+    }
+}
+
+#[test]
+fn linux_asset_selection_prefers_the_matching_architecture_package() {
+    let assets = vec![
+        (
+            "CodexPlusPlus-1.2.5-linux-x64.tar.gz".to_string(),
+            "https://example.test/x64.tar.gz".to_string(),
+        ),
+        (
+            "CodexPlusPlus-1.2.5-linux-arm64.tar.gz".to_string(),
+            "https://example.test/arm64.tar.gz".to_string(),
+        ),
+        (
+            "CodexPlusPlus-1.2.5-linux-x64.deb".to_string(),
+            "https://example.test/x64.deb".to_string(),
+        ),
+        (
+            "CodexPlusPlus-1.2.5-linux-arm64.deb".to_string(),
+            "https://example.test/arm64.deb".to_string(),
+        ),
+    ];
+
+    if cfg!(all(unix, not(target_os = "macos"), target_arch = "x86_64")) {
+        // The tarballs come first in the list, but the `.deb` still wins.
+        let selected = select_update_asset(&assets).unwrap();
+        assert_eq!(selected.name, "CodexPlusPlus-1.2.5-linux-x64.deb");
+    } else if cfg!(all(unix, not(target_os = "macos"), target_arch = "aarch64")) {
+        let selected = select_update_asset(&assets).unwrap();
+        assert_eq!(selected.name, "CodexPlusPlus-1.2.5-linux-arm64.deb");
+    } else {
+        assert!(select_update_asset(&assets).is_none());
+    }
+}
+
+#[test]
+fn linux_asset_selection_falls_back_to_the_tarball_when_no_package_matches() {
+    let assets = vec![
+        (
+            "CodexPlusPlus-1.2.5-linux-x64.tar.gz".to_string(),
+            "https://example.test/x64.tar.gz".to_string(),
+        ),
+        (
+            "CodexPlusPlus-1.2.5-linux-arm64.tar.gz".to_string(),
+            "https://example.test/arm64.tar.gz".to_string(),
+        ),
+    ];
+
+    if cfg!(all(unix, not(target_os = "macos"), target_arch = "x86_64")) {
+        let selected = select_update_asset(&assets).unwrap();
+        assert_eq!(selected.name, "CodexPlusPlus-1.2.5-linux-x64.tar.gz");
+    } else if cfg!(all(unix, not(target_os = "macos"), target_arch = "aarch64")) {
+        let selected = select_update_asset(&assets).unwrap();
+        assert_eq!(selected.name, "CodexPlusPlus-1.2.5-linux-arm64.tar.gz");
     } else {
         assert!(select_update_asset(&assets).is_none());
     }

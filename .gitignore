@@ -17,3 +17,6 @@ docs/superpowers/
 *.log
 .DS_Store
 Thumbs.db
+
+# Node dependencies (installed per checkout by `npm install`)
+node_modules/

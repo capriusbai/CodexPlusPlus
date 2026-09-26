@@ -2163,13 +2163,30 @@ fn open_url(url: &str) -> anyhow::Result<()> {
     {
         codex_plus_core::windows_open_url(url)
     }
-    #[cfg(not(windows))]
+    #[cfg(target_os = "macos")]
     {
         std::process::Command::new("open")
             .arg(url)
             .spawn()
             .map(|_| ())
             .map_err(|error| anyhow::anyhow!("启动系统浏览器失败：{error}"))
+    }
+    #[cfg(all(unix, not(target_os = "macos")))]
+    {
+        std::process::Command::new("xdg-open")
+            .arg(url)
+            .stdout(std::process::Stdio::null())
+            .stderr(std::process::Stdio::null())
+            .spawn()
+            .map(|_| ())
+            .map_err(|error| {
+                anyhow::anyhow!("启动系统浏览器失败：{error}（请确认已安装 xdg-utils）")
+            })
+    }
+    #[cfg(not(any(windows, unix)))]
+    {
+        let _ = url;
+        anyhow::bail!("当前平台不支持打开系统浏览器")
     }
 }
 

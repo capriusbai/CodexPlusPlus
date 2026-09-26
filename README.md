@@ -25,13 +25,45 @@ Codex++ 是面向 Codex App 的外部增强启动器和管理工具。它不修�
 - Windows：`CodexPlusPlus-*-windows-x64-setup.exe`
 - macOS Intel：`CodexPlusPlus-*-macos-x64.dmg`
 - macOS Apple Silicon：`CodexPlusPlus-*-macos-arm64.dmg`
+- Linux x86_64：`CodexPlusPlus-*-linux-x64.deb` 或 `CodexPlusPlus-*-linux-x64.tar.gz`
+- Linux arm64：`CodexPlusPlus-*-linux-arm64.deb` 或 `CodexPlusPlus-*-linux-arm64.tar.gz`
 
 安装后会有两个入口：
 
 - `Codex++`：静默启动入口，不显示管理界面，只负责启动 Codex 并注入增强功能。
 - `Codex++ 管理工具`：Tauri 控制面板，用于启动、检查、修复、更新、配置中转注入、管理增强功能和用户脚本。
 
-Windows 安装包会创建桌面和开始菜单快捷方式。macOS DMG 会安装 `/Applications/Codex++.app` 和 `/Applications/Codex++ 管理工具.app`。
+Windows 安装包会创建桌面和开始菜单快捷方式。macOS DMG 会安装 `/Applications/Codex++.app` 和 `/Applications/Codex++ 管理工具.app`。Linux `.deb` 会安装到 `/usr/lib/codex-plus-plus/`，并在应用菜单中注册 `Codex++` 与 `Codex++ Manager` 两个入口。
+
+### Ubuntu 26.04 / 24.04、Debian 13+
+
+`.deb` 适用于 Ubuntu 24.04 及以上（含 26.04）和 Debian 13 及以上，依赖这些发行版自带的 WebKitGTK 4.1：
+
+```bash
+sudo apt install ./CodexPlusPlus-1.3.0-linux-x64.deb
+```
+
+`apt` 会自动补齐 `libwebkit2gtk-4.1-0`、`libgtk-3-0t64` 等运行时依赖。如果用 `dpkg -i` 安装后提示缺少依赖，执行 `sudo apt -f install` 补齐即可。
+
+卸载：
+
+```bash
+sudo apt remove codex-plus-plus
+```
+
+### 其他发行版（tar.gz）
+
+`.tar.gz` 不依赖包管理器，解压后按当前用户安装到 `~/.local`：
+
+```bash
+tar -xzf CodexPlusPlus-1.3.0-linux-x64.tar.gz
+cd CodexPlusPlus-1.3.0-linux-x64
+./install.sh            # 也可用 PREFIX=/opt/codex-plus-plus ./install.sh
+```
+
+先确认发行版已提供 WebKitGTK 4.1 运行库（Ubuntu/Debian 为 `libwebkit2gtk-4.1-0`、Fedora 为 `webkit2gtk4.1`、Arch 为 `webkit2gtk-4.1`）。卸载执行同目录下的 `./uninstall.sh`。
+
+`install.sh` 会调用 `codex-plus-plus-manager --install-entrypoints` 写入用户级 `.desktop` 入口；也可以随时手动执行该命令重建入口，或用 `--uninstall-entrypoints` 移除。
 
 ## 赞助商
 
@@ -190,6 +222,7 @@ Telegram 频道：<https://t.me/CodexPlusPlus>
 - GitHub Release 自动更新，管理工具和静默启动器都会检测可用更新。
 - Windows 单实例、无黑框启动、管理员权限清单、系统桌面路径识别。
 - macOS x64/arm64 分架构 DMG，静默入口隐藏 Dock 图标。
+- Linux x64/arm64 分架构 `.deb` 与便携 `.tar.gz`，遵循 XDG 规范注册 `.desktop` 入口和 hicolor 图标。
 
 ## 痛点与解决
 
@@ -270,9 +303,9 @@ https://cdn.jsdelivr.net/gh/BigPizzaV3/Ad-List@main/ads.json
 
 ## 自动更新与安装包
 
-Codex++ 通过 GitHub Release 发布安装包。Windows 会生成 NSIS 安装程序，macOS 会生成 Intel x64 和 Apple Silicon arm64 两个 DMG。
+Codex++ 通过 GitHub Release 发布安装包。Windows 会生成 NSIS 安装程序，macOS 会生成 Intel x64 和 Apple Silicon arm64 两个 DMG，Linux 会生成 x64 和 arm64 的 `.deb` 与 `.tar.gz`。
 
-管理工具的“关于”页可以检查并启动更新。静默启动器发现新版本时会拉起管理工具并进入更新提示。
+管理工具的“关于”页可以检查并启动更新。静默启动器发现新版本时会拉起管理工具并进入更新提示。更新时只会挑选与当前系统和 CPU 架构匹配的安装包：Linux 优先 `.deb`，没有匹配的 `.deb` 时回退到同架构的 `.tar.gz`。
 
 ## 数据位置
 
@@ -327,6 +360,28 @@ sudo xattr -rd com.apple.quarantine /Applications/Codex++.app
 
 可以。Release 会分别提供 `macos-x64.dmg` 和 `macos-arm64.dmg`。Intel Mac 下载 x64 包，Apple Silicon 下载 arm64 包。
 
+### Linux 上管理工具启动后是空白窗口
+
+这是 WebKitGTK 的渲染问题，不是注入失败。先尝试关闭硬件加速：
+
+```bash
+WEBKIT_DISABLE_DMABUF_RENDERER=1 codex-plus-plus-manager
+```
+
+Ubuntu 24.04 起内核默认开启 `kernel.apparmor_restrict_unprivileged_userns=1`，会阻止依赖 bubblewrap 沙箱的进程创建 user namespace。Codex++ 管理工具自身不使用该沙箱，但被拉起的 Codex App（Electron/Chromium）可能受影响。如果 Codex 本体起不来，可加载 Ubuntu 自带的 `bwrap-userns-restrict` 配置：
+
+```bash
+sudo apt install apparmor-profiles
+sudo install -m 0644 /usr/share/apparmor/extra-profiles/bwrap-userns-restrict /etc/apparmor.d/bwrap-userns-restrict
+sudo apparmor_parser -r /etc/apparmor.d/bwrap-userns-restrict
+```
+
+### Linux 上找不到 Codex App
+
+Linux 没有 MS Store / `/Applications` 这样的固定安装位置，Codex++ 会在 `/opt`、`/usr/lib`、`/usr/share`、`~/.local/share`、`~/Applications` 等目录下查找包含 Codex 可执行文件（`Codex`、`codex`、`codex-app`）的目录，以及名字含 `codex` 的 `.AppImage`。
+
+只有确实包含可执行文件的目录才会被采纳，因此 `PATH` 上的 `codex` CLI 不会被误认成桌面版。自动识别失败时，在管理工具的设置里手动填写 Codex App 路径（可以直接填 `.AppImage` 文件路径）。
+
 ## 开发
 
 ```bash
@@ -357,7 +412,18 @@ crates/
 scripts/installer/
   windows/CodexPlusPlus.nsi     Windows NSIS 安装包
   macos/package-dmg.sh          macOS DMG 打包
+  linux/package-linux.sh        Linux .deb 与 .tar.gz 打包
 ```
+
+Linux 本地打包（需要先 `cargo build --release`）：
+
+```bash
+sudo apt install libwebkit2gtk-4.1-dev libgtk-3-dev librsvg2-dev desktop-file-utils
+cargo build --release
+bash scripts/installer/linux/package-linux.sh 1.3.0     # 架构默认取本机，可显式传 x64 / arm64
+```
+
+产物在 `dist/linux/`。CI 固定在 `ubuntu-24.04` 上构建：它的 glibc 与 WebKitGTK 4.1 soname 是需要支持的最低版本，更新的 Ubuntu（25.10、26.04）向下兼容。
 
 ## 友情链接
 

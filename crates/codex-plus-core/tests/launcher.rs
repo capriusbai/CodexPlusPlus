@@ -3,8 +3,9 @@ use std::sync::{Arc, Mutex};
 
 use codex_plus_core::app_paths::{
     build_codex_executable, codex_app_version, find_latest_codex_app_dir,
-    find_latest_codex_app_dir_from_roots, find_macos_codex_app, normalize_codex_app_path,
-    packaged_app_user_model_id, resolve_codex_app_dir_with_saved, user_data_candidates_from,
+    find_latest_codex_app_dir_from_roots, find_linux_codex_app, find_macos_codex_app,
+    normalize_codex_app_path, packaged_app_user_model_id, resolve_codex_app_dir_with_saved,
+    user_data_candidates_from,
 };
 use codex_plus_core::launcher::{
     CodexLaunch, DefaultLaunchHooks, LaunchHooks, LaunchOptions, MacosCleanupPolicy,
@@ -150,6 +151,76 @@ fn app_paths_normalizes_executable_and_package_paths() {
         normalize_codex_app_path(&portable).as_deref(),
         Some(app.as_path())
     );
+}
+
+#[test]
+fn app_paths_finds_unpacked_linux_codex_app() {
+    let temp = tempfile::tempdir().unwrap();
+    let opt = temp.path().join("opt");
+    let app = opt.join("Codex");
+    std::fs::create_dir_all(&app).unwrap();
+    std::fs::write(app.join("codex"), "").unwrap();
+
+    assert_eq!(find_linux_codex_app(&[opt]).as_deref(), Some(app.as_path()));
+}
+
+#[test]
+fn app_paths_prefers_the_nested_linux_app_directory() {
+    let temp = tempfile::tempdir().unwrap();
+    let opt = temp.path().join("opt");
+    let root = opt.join("Codex");
+    let nested = root.join("app");
+    std::fs::create_dir_all(&nested).unwrap();
+    std::fs::write(root.join("codex"), "").unwrap();
+    std::fs::write(nested.join("codex"), "").unwrap();
+
+    assert_eq!(
+        find_linux_codex_app(&[opt]).as_deref(),
+        Some(nested.as_path())
+    );
+}
+
+#[test]
+fn app_paths_ignores_linux_directories_without_a_codex_binary() {
+    let temp = tempfile::tempdir().unwrap();
+    let opt = temp.path().join("opt");
+    std::fs::create_dir_all(opt.join("Codex")).unwrap();
+
+    assert_eq!(find_linux_codex_app(&[opt]), None);
+}
+
+#[test]
+fn app_paths_finds_codex_app_image_and_treats_it_as_its_own_app_dir() {
+    let temp = tempfile::tempdir().unwrap();
+    let root = temp.path().join("Applications");
+    std::fs::create_dir_all(&root).unwrap();
+    let app_image = root.join("Codex-1.2.3-x86_64.AppImage");
+    std::fs::write(&app_image, "").unwrap();
+    std::fs::write(root.join("Other-1.0.0-x86_64.AppImage"), "").unwrap();
+
+    assert_eq!(
+        find_linux_codex_app(&[root]).as_deref(),
+        Some(app_image.as_path())
+    );
+    assert_eq!(
+        normalize_codex_app_path(&app_image).as_deref(),
+        Some(app_image.as_path())
+    );
+    assert_eq!(build_codex_executable(&app_image), app_image);
+}
+
+#[test]
+fn app_paths_build_linux_executable_from_unpacked_directory() {
+    let temp = tempfile::tempdir().unwrap();
+    let app = temp.path().join("Codex");
+    std::fs::create_dir_all(&app).unwrap();
+    std::fs::write(app.join("codex"), "").unwrap();
+
+    if cfg!(windows) {
+        assert_eq!(build_codex_executable(&app), app.join("codex.exe"));
+    } else {
+        assert_eq!(build_codex_executable(&app), app.join("codex"));
+    }
 }
 
 #[test]
