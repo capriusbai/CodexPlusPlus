@@ -66,6 +66,8 @@ pub struct LaunchOptions {
     pub debug_port: u16,
     pub helper_port: u16,
     pub status_store: StatusStore,
+    /// Which Codex configuration the launched app reads. Chosen per launch.
+    pub home_profile: crate::codex_home::CodexHomeProfile,
 }
 
 impl Default for LaunchOptions {
@@ -75,6 +77,8 @@ impl Default for LaunchOptions {
             debug_port: 9229,
             helper_port: 57321,
             status_store: StatusStore::default(),
+            // Defaults to the user's untouched ~/.codex.
+            home_profile: crate::codex_home::CodexHomeProfile::default(),
         }
     }
 }
@@ -133,6 +137,7 @@ pub trait LaunchHooks: Send + Sync {
         app_dir: &Path,
         debug_port: u16,
         extra_args: &[String],
+        home_profile: crate::codex_home::CodexHomeProfile,
     ) -> anyhow::Result<CodexLaunch>;
     async fn bridge_context(
         &self,
@@ -240,7 +245,12 @@ where
         }
 
         let launch = hooks
-            .launch_codex(&app_dir, debug_port, &settings.codex_extra_args)
+            .launch_codex(
+                &app_dir,
+                debug_port,
+                &settings.codex_extra_args,
+                options.home_profile,
+            )
             .await?;
         launched = Some(launch.clone());
         keep_launched_on_error = true;
@@ -449,6 +459,7 @@ impl LaunchHooks for DefaultLaunchHooks {
         app_dir: &Path,
         debug_port: u16,
         extra_args: &[String],
+        home_profile: crate::codex_home::CodexHomeProfile,
     ) -> anyhow::Result<CodexLaunch> {
         if cfg!(windows) {
             if let Some(activation) = build_packaged_activation(app_dir, debug_port, extra_args) {
@@ -509,6 +520,11 @@ impl LaunchHooks for DefaultLaunchHooks {
             .args(&command[1..])
             .stdout(Stdio::null())
             .stderr(Stdio::null());
+        // Only the proxy profile imposes a home; the official profile lets
+        // Codex resolve CODEX_HOME exactly as it would on its own.
+        if let Some(home) = crate::codex_home::prepare_launch_env(home_profile) {
+            child_command.env("CODEX_HOME", home);
+        }
         #[cfg(windows)]
         child_command.creation_flags(crate::windows_integration::CREATE_NO_WINDOW);
         let child = child_command

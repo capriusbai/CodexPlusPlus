@@ -84,10 +84,33 @@ pub struct CodexContextEntries {
     pub plugins: Vec<CodexContextEntry>,
 }
 
+/// The official `~/.codex`. Kept as the default read target so nothing that
+/// only inspects the user's setup changes behaviour; writes go through
+/// [`codex_home_dir_for_writes`].
 pub fn default_codex_home_dir() -> PathBuf {
-    directories::BaseDirs::new()
-        .map(|dirs| dirs.home_dir().join(".codex"))
-        .unwrap_or_else(|| PathBuf::from(".codex"))
+    crate::codex_home::official_home_dir()
+}
+
+/// The home a given profile reads and writes.
+pub fn codex_home_dir(profile: crate::codex_home::CodexHomeProfile) -> PathBuf {
+    crate::codex_home::home_dir(profile)
+}
+
+/// The home relay injection may write, or an error naming why it may not.
+///
+/// The official home belongs to the user and to the Codex App they launch
+/// themselves, so it is never a write target.
+pub fn codex_home_dir_for_writes(
+    profile: crate::codex_home::CodexHomeProfile,
+) -> anyhow::Result<PathBuf> {
+    if !profile.is_writable() {
+        anyhow::bail!(
+            "当前为「官方」配置（~/.codex），AetherCodex 不会改写它。\
+             要使用中转注入，请在启动时选择「中转」配置。"
+        );
+    }
+    crate::codex_home::prepare_proxy_home()
+        .map_err(|error| anyhow::anyhow!("无法准备中转配置目录：{error}"))
 }
 
 pub fn default_relay_status() -> RelayStatus {

@@ -471,6 +471,9 @@ type StartupResult = CommandResult<{
   showUpdate: boolean;
 }>;
 
+/** Which Codex configuration a launch reads. "" means the saved default. */
+type CodexHomeProfile = "" | "official" | "proxy";
+
 type Route = "overview" | "relay" | "sessions" | "context" | "enhance" | "zedRemote" | "userScripts" | "help" | "maintenance" | "about" | "settings";
 type Theme = "dark" | "light";
 
@@ -829,8 +832,8 @@ export function App() {
     }
   };
 
-  const launch = async () => {
-    const result = await launchCommand("launch_codex_plus");
+  const launch = async (homeProfile: CodexHomeProfile = "") => {
+    const result = await launchCommand("launch_codex_plus", homeProfile);
     if (result) {
       showNotice("启动任务", result.message, result.status);
       await refreshOverview(true);
@@ -845,13 +848,17 @@ export function App() {
     }
   };
 
-  const launchCommand = async (command: "launch_codex_plus" | "restart_codex_plus") => {
+  const launchCommand = async (
+    command: "launch_codex_plus" | "restart_codex_plus",
+    homeProfile: CodexHomeProfile = "",
+  ) => {
     const result = await run(() =>
       call<CommandResult<Record<string, unknown>>>(command, {
         request: {
           appPath: launchForm.appPath,
           debugPort: numberOrDefault(launchForm.debugPort, 9229),
           helperPort: numberOrDefault(launchForm.helperPort, 57321),
+          homeProfile,
         },
       }),
     );
@@ -1686,7 +1693,7 @@ export function App() {
 
 type Actions = {
   refreshCurrent: () => Promise<void>;
-  launch: () => Promise<void>;
+  launch: (homeProfile?: CodexHomeProfile) => Promise<void>;
   restart: () => Promise<void>;
   repairBackend: () => Promise<void>;
   installEntrypoints: () => Promise<void>;
@@ -1804,9 +1811,13 @@ function OverviewScreen({
         <CardContent>
           <LatestLaunch status={overview?.latest_launch ?? null} />
           <Toolbar>
-            <Button onClick={() => void actions.launch()}>
+            <Button onClick={() => void actions.launch("official")} title="使用你自己的 ~/.codex：登录态、模型和历史会话都和你平时直接打开 Codex 完全一致。AetherCodex 不会改写它。">
               <Rocket className="h-4 w-4" />
-              启动 AetherCodex
+              启动（官方配置）
+            </Button>
+            <Button variant="secondary" onClick={() => void actions.launch("proxy")} title="使用 AetherCodex 自己的配置目录 ~/.aethercodex/codex-home：中转注入只写这里，不影响官方 Codex。首次启动会从官方复制一份登录态。">
+              <Rocket className="h-4 w-4" />
+              启动（中转配置）
             </Button>
             <Button variant="secondary" onClick={() => void actions.goLogs()}>
               打开关于

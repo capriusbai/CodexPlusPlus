@@ -148,6 +148,12 @@ pub enum RelayMode {
 pub struct BackendSettings {
     #[serde(rename = "codexAppPath", default)]
     pub codex_app_path: String,
+    /// Which Codex configuration a launch reads: the user's own `~/.codex`
+    /// ("official", never written by AetherCodex) or AetherCodex's own home
+    /// ("proxy", where relay injection applies). Remembered as the default for
+    /// the next launch; the launch itself still states which one it used.
+    #[serde(rename = "codexHomeProfile", default)]
+    pub codex_home_profile: crate::codex_home::CodexHomeProfile,
     #[serde(rename = "codexExtraArgs", default)]
     pub codex_extra_args: Vec<String>,
     #[serde(rename = "providerSyncEnabled", default)]
@@ -234,6 +240,7 @@ impl Default for BackendSettings {
     fn default() -> Self {
         Self {
             codex_app_path: String::new(),
+            codex_home_profile: crate::codex_home::CodexHomeProfile::default(),
             codex_extra_args: Vec::new(),
             provider_sync_enabled: false,
             provider_sync_saved_providers: Vec::new(),
@@ -494,6 +501,16 @@ impl SettingsStore {
 }
 
 fn merge_known_setting_fields(target: &mut Map<String, Value>, source: &Map<String, Value>) {
+    if let Some(profile) = source
+        .get("codexHomeProfile")
+        .and_then(Value::as_str)
+        .and_then(crate::codex_home::CodexHomeProfile::parse)
+    {
+        target.insert(
+            "codexHomeProfile".to_string(),
+            Value::String(profile.as_str().to_string()),
+        );
+    }
     if let Some(value) = source.get("codexAppPath").and_then(Value::as_str) {
         target.insert("codexAppPath".to_string(), Value::String(value.to_string()));
     }

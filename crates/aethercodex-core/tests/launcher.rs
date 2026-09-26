@@ -494,6 +494,7 @@ async fn launch_lifecycle_runs_sync_before_launch_writes_success_and_shutdowns_o
 
     let handle = launch_and_inject_with_hooks(
         LaunchOptions {
+            home_profile: Default::default(),
             app_dir: Some(app_dir.clone()),
             debug_port: 9229,
             helper_port: 57321,
@@ -546,6 +547,7 @@ async fn launch_lifecycle_passes_configured_extra_args_to_codex_launch() {
 
     let handle = launch_and_inject_with_hooks(
         LaunchOptions {
+            home_profile: Default::default(),
             app_dir: Some(app_dir),
             debug_port: 9229,
             helper_port: 57321,
@@ -579,6 +581,7 @@ async fn launch_lifecycle_keeps_js_injection_in_relay_mode() {
 
     let handle = launch_and_inject_with_hooks(
         LaunchOptions {
+            home_profile: Default::default(),
             app_dir: Some(app_dir),
             debug_port: 9229,
             helper_port: 57321,
@@ -620,6 +623,7 @@ async fn launch_lifecycle_skips_helper_and_injection_when_enhancements_disabled(
 
     let handle = launch_and_inject_with_hooks(
         LaunchOptions {
+            home_profile: Default::default(),
             app_dir: Some(app_dir),
             debug_port: 9229,
             helper_port: 57321,
@@ -655,6 +659,7 @@ async fn launch_lifecycle_does_not_apply_active_relay_profile_before_starting_co
 
     let handle = launch_and_inject_with_hooks(
         LaunchOptions {
+            home_profile: Default::default(),
             app_dir: Some(app_dir),
             debug_port: 9229,
             helper_port: 57321,
@@ -685,6 +690,7 @@ async fn launch_lifecycle_skips_active_relay_profile_when_supplier_config_disabl
 
     let handle = launch_and_inject_with_hooks(
         LaunchOptions {
+            home_profile: Default::default(),
             app_dir: Some(app_dir),
             debug_port: 9229,
             helper_port: 57321,
@@ -736,6 +742,7 @@ experimental_bearer_token = "sk-test"
 
     let handle = launch_and_inject_with_hooks(
         LaunchOptions {
+            home_profile: Default::default(),
             app_dir: Some(app_dir),
             debug_port: 9229,
             helper_port: 57321,
@@ -763,6 +770,7 @@ async fn launch_lifecycle_enters_degraded_mode_and_retries_when_injection_fails(
 
     let handle = launch_and_inject_with_hooks(
         LaunchOptions {
+            home_profile: Default::default(),
             app_dir: Some(app_dir),
             debug_port: 9229,
             helper_port: 57321,
@@ -807,6 +815,7 @@ async fn launch_lifecycle_cleans_helper_when_launch_fails_after_helper_started()
 
     let error = launch_and_inject_with_hooks(
         LaunchOptions {
+            home_profile: Default::default(),
             app_dir: Some(app_dir),
             debug_port: 9229,
             helper_port: 57321,
@@ -871,6 +880,7 @@ async fn launch_starts_helper_when_chat_protocol_proxy_is_enabled() {
 
     let handle = launch_and_inject_with_hooks(
         LaunchOptions {
+            home_profile: Default::default(),
             app_dir: Some(app_dir),
             debug_port: 9229,
             helper_port: 58000,
@@ -914,6 +924,7 @@ async fn launch_lifecycle_cleans_helper_and_codex_when_status_save_fails() {
 
     let error = launch_and_inject_with_hooks(
         LaunchOptions {
+            home_profile: Default::default(),
             app_dir: Some(app_dir),
             debug_port: 9229,
             helper_port: 57321,
@@ -958,6 +969,7 @@ async fn launch_lifecycle_keeps_packaged_process_id_running_and_retries_when_inj
 
     let handle = launch_and_inject_with_hooks(
         LaunchOptions {
+            home_profile: Default::default(),
             app_dir: Some(app_dir),
             debug_port: 9229,
             helper_port: 57321,
@@ -1136,6 +1148,7 @@ impl LaunchHooks for FakeHooks {
         app_dir: &Path,
         debug_port: u16,
         extra_args: &[String],
+        _home_profile: aethercodex_core::codex_home::CodexHomeProfile,
     ) -> anyhow::Result<CodexLaunch> {
         assert!(app_dir.ends_with("Codex.app"));
         if extra_args.is_empty() {

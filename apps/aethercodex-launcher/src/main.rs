@@ -129,7 +129,12 @@ async fn activate_existing_codex_app(options: &LaunchOptions) -> anyhow::Result<
     let settings = hooks.load_settings().await?;
     let app_dir = hooks.resolve_app_dir(options.app_dir.as_deref(), &settings)?;
     let launch_result = hooks
-        .launch_codex(&app_dir, options.debug_port, &settings.codex_extra_args)
+        .launch_codex(
+            &app_dir,
+            options.debug_port,
+            &settings.codex_extra_args,
+            options.home_profile,
+        )
         .await;
     if settings.enhancements_enabled {
         hooks.start_helper(options.helper_port).await?;
@@ -243,6 +248,18 @@ where
                     }
                 }
             }
+            // Which Codex configuration this launch reads: `official` is the
+            // user's own ~/.codex, `proxy` is AetherCodex's own home. An
+            // unrecognised value keeps the default rather than guessing.
+            "--profile" | "--codex-home" => {
+                if let Some(value) = iter.next() {
+                    if let Some(profile) =
+                        aethercodex_core::codex_home::CodexHomeProfile::parse(value.as_ref())
+                    {
+                        options.home_profile = profile;
+                    }
+                }
+            }
             _ => {}
         }
     }
@@ -294,9 +311,10 @@ impl LaunchHooks for LauncherHooks {
         app_dir: &Path,
         debug_port: u16,
         extra_args: &[String],
+        home_profile: aethercodex_core::codex_home::CodexHomeProfile,
     ) -> anyhow::Result<aethercodex_core::launcher::CodexLaunch> {
         self.core
-            .launch_codex(app_dir, debug_port, extra_args)
+            .launch_codex(app_dir, debug_port, extra_args, home_profile)
             .await
     }
 
@@ -717,6 +735,29 @@ fn default_user_scripts_config_dir() -> PathBuf {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn parse_launch_options_reads_the_codex_home_profile() {
+        use aethercodex_core::codex_home::CodexHomeProfile;
+
+        assert_eq!(
+            parse_launch_options(["--profile", "proxy"]).home_profile,
+            CodexHomeProfile::Proxy
+        );
+        assert_eq!(
+            parse_launch_options(["--codex-home", "official"]).home_profile,
+            CodexHomeProfile::Official
+        );
+        // The default is the user's untouched home, and junk never changes it.
+        assert_eq!(
+            parse_launch_options(["--profile", "nonsense"]).home_profile,
+            CodexHomeProfile::Official
+        );
+        assert_eq!(
+            parse_launch_options(Vec::<String>::new()).home_profile,
+            CodexHomeProfile::Official
+        );
+    }
 
     #[test]
     fn parse_launch_options_accepts_manager_forwarded_ports_and_app_path() {

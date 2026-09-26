@@ -143,6 +143,7 @@
   <a href="#install">安装与入口</a>
   <a href="#first-run">第一次使用</a>
   <a href="#ui">界面导览</a>
+  <a href="#profile">官方配置 vs 中转配置</a>
   <a href="#relay">供应商与中转注入</a>
   <a href="#enhance">页面增强</a>
   <a href="#scripts">脚本市场</a>
@@ -228,6 +229,31 @@ cd AetherCodex-2.0.0-linux-x64
   <tr><td>关于</td><td>版本、项目链接、检查更新、日志和诊断报告。</td></tr>
   <tr><td>设置</td><td>主题、Codex App 路径、命令包装器、额外启动参数。</td></tr>
 </table>
+</section>
+
+<section id="profile">
+<h2>官方配置 vs 中转配置</h2>
+<p>启动 Codex 时，AetherCodex 让你选它读哪一份配置。这个选择每次启动都显式做，不是藏在设置里的模式。</p>
+<table>
+  <tr><th></th><th>启动（官方配置）</th><th>启动（中转配置）</th></tr>
+  <tr><td><strong>配置目录</strong></td><td><code>~/.codex</code></td><td><code>~/.aethercodex/codex-home</code></td></tr>
+  <tr><td><strong>谁在写</strong></td><td><strong>只有你自己。</strong>AetherCodex 全程只读</td><td>只有 AetherCodex</td></tr>
+  <tr><td><strong>中转注入</strong></td><td><strong>不可用</strong>，会明确报错而不是改写你的配置</td><td>可用，只写这个目录</td></tr>
+  <tr><td><strong>登录态</strong></td><td>你平时的登录</td><td>首次启动从官方<strong>复制</strong>一份，之后两边独立</td></tr>
+  <tr><td><strong>历史会话</strong></td><td>你平时的会话</td><td>独立，一开始是空的</td></tr>
+  <tr><td><strong>适合</strong></td><td>就想用增强功能，不动任何配置</td><td>要用中转/第三方 API</td></tr>
+</table>
+<div class="note"><strong>为什么分开</strong>
+官方 Codex App、你 shell 里的 <code>codex</code>、以及别的编排工具（比如 Orca）读的都是 <code>~/.codex</code>。
+AetherCodex 不去和它们抢这个文件，而是用 Codex 自带的 <code>CODEX_HOME</code> 机制另开一份。
+这样中转配置怎么折腾都不会弄坏你原本能用的环境。</div>
+<div class="warn"><strong>选了官方配置时</strong>
+「供应商配置」页的应用/清除按钮会拒绝执行并提示切到中转配置。这是有意的——
+那一刻你要改的是你自己的 <code>~/.codex</code>。</div>
+<p>命令行同样可选：</p>
+<pre><code>aethercodex --profile official   # 读 ~/.codex
+aethercodex --profile proxy      # 读 ~/.aethercodex/codex-home</code></pre>
+<p>不带参数时沿用上次的选择。</p>
 </section>
 
 <section id="relay">

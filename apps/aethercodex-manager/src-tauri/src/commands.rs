@@ -203,6 +203,9 @@ pub struct ExtractRelayCommonConfigRequest {
 pub struct LaunchRequest {
     #[serde(default)]
     pub app_path: String,
+    /// "official" or "proxy"; empty falls back to the saved default.
+    #[serde(default)]
+    pub home_profile: String,
     #[serde(default = "default_debug_port")]
     pub debug_port: u16,
     #[serde(default = "default_helper_port")]
@@ -372,6 +375,9 @@ fn spawn_aethercodex_launch(
 }
 
 fn spawn_silent_launcher(request: &LaunchRequest) -> anyhow::Result<()> {
+    let profile = resolve_launch_profile(request);
+    // The manager's own reads must follow the home that was just launched.
+    remember_launch_profile(profile);
     let launcher = aethercodex_core::install::companion_binary_path(SILENT_BINARY);
     let mut command = std::process::Command::new(&launcher);
     if !request.app_path.trim().is_empty() {
@@ -381,7 +387,9 @@ fn spawn_silent_launcher(request: &LaunchRequest) -> anyhow::Result<()> {
         .arg("--debug-port")
         .arg(request.debug_port.to_string())
         .arg("--helper-port")
-        .arg(request.helper_port.to_string());
+        .arg(request.helper_port.to_string())
+        .arg("--profile")
+        .arg(profile.as_str());
     #[cfg(windows)]
     {
         use std::os::windows::process::CommandExt;
@@ -511,7 +519,7 @@ pub fn import_ccs_providers() -> CommandResult<SettingsPayload> {
 
 #[tauri::command]
 pub fn list_local_sessions() -> CommandResult<LocalSessionsPayload> {
-    let db_path = aethercodex_core::relay_config::default_codex_home_dir().join("state_5.sqlite");
+    let db_path = selected_codex_home().join("state_5.sqlite");
     let adapter = local_session_adapter(&db_path);
     match adapter.list_local_sessions() {
         Ok(sessions) => ok(
@@ -619,7 +627,7 @@ pub fn delete_local_session(request: DeleteLocalSessionRequest) -> CommandResult
             },
         );
     }
-    let db_path = aethercodex_core::relay_config::default_codex_home_dir().join("state_5.sqlite");
+    let db_path = selected_codex_home().join("state_5.sqlite");
     let adapter = local_session_adapter(&db_path);
     let session = SessionRef {
         session_id: session_id.to_string(),
@@ -1365,7 +1373,7 @@ pub fn relay_status() -> CommandResult<RelayPayload> {
 
 #[tauri::command]
 pub fn read_relay_files() -> CommandResult<RelayFilesPayload> {
-    let home = aethercodex_core::relay_config::default_codex_home_dir();
+    let home = selected_codex_home();
     match relay_files_payload_from_home(&home) {
         Ok(payload) => ok("配置文件内容已读取。", payload),
         Err(error) => failed(
@@ -1382,7 +1390,7 @@ pub fn read_relay_files() -> CommandResult<RelayFilesPayload> {
 
 #[tauri::command]
 pub fn save_relay_file(request: SaveRelayFileRequest) -> CommandResult<RelayFilesPayload> {
-    let home = aethercodex_core::relay_config::default_codex_home_dir();
+    let home = selected_codex_home();
     match save_relay_file_in_home(&home, &request.kind, &request.contents)
         .and_then(|_| relay_files_payload_from_home(&home))
     {
@@ -1412,7 +1420,7 @@ pub fn write_diagnostic_event(event: String, detail: Value) -> CommandResult<Val
 pub fn backfill_relay_profile_from_live(
     request: BackfillRelayProfileRequest,
 ) -> CommandResult<SettingsBackfillPayload> {
-    let home = aethercodex_core::relay_config::default_codex_home_dir();
+    let home = selected_codex_home();
     let mut settings = request.settings;
     let requested_profile_id = request.profile_id.clone();
     log_manager_event(
@@ -1498,7 +1506,7 @@ pub fn list_context_entries(
 
 #[tauri::command]
 pub fn read_live_context_entries() -> CommandResult<LiveContextEntriesPayload> {
-    let home = aethercodex_core::relay_config::default_codex_home_dir();
+    let home = selected_codex_home();
     let config_path = home.join("config.toml");
     let config = read_optional_text_file(&config_path).unwrap_or_default();
     match aethercodex_core::relay_config::list_context_entries_from_common_config(&config) {
@@ -1542,7 +1550,7 @@ pub fn upsert_context_entry(request: ContextEntryRequest) -> CommandResult<Conte
 pub fn sync_live_context_entries(
     request: ContextSettingsRequest,
 ) -> CommandResult<LiveContextEntriesPayload> {
-    let home = aethercodex_core::relay_config::default_codex_home_dir();
+    let home = selected_codex_home();
     let config_path = home.join("config.toml");
     let current_config = match read_optional_text_file(&config_path) {
         Ok(config) => config,
@@ -1737,7 +1745,19 @@ pub async fn fetch_relay_profile_models(
 
 #[tauri::command]
 pub fn apply_relay_injection() -> CommandResult<RelayPayload> {
-    let home = aethercodex_core::relay_config::default_codex_home_dir();
+    // Writing is only ever allowed against AetherCodex's own home.
+    let home = match selected_codex_home_for_writes() {
+        Ok(home) => home,
+        Err(error) => {
+            return failed(
+                &format!("应用中转注入失败：{error}"),
+                relay_payload(
+                    aethercodex_core::relay_config::relay_status_from_home(&selected_codex_home()),
+                    None,
+                ),
+            );
+        }
+    };
     let settings =
         settings_with_live_ccs_profiles(SettingsStore::default().load().unwrap_or_default());
     if !settings.relay_profiles_enabled {
@@ -1842,7 +1862,19 @@ pub fn apply_relay_injection() -> CommandResult<RelayPayload> {
 
 #[tauri::command]
 pub fn apply_pure_api_injection() -> CommandResult<RelayPayload> {
-    let home = aethercodex_core::relay_config::default_codex_home_dir();
+    // Writing is only ever allowed against AetherCodex's own home.
+    let home = match selected_codex_home_for_writes() {
+        Ok(home) => home,
+        Err(error) => {
+            return failed(
+                &format!("应用纯 API 注入失败：{error}"),
+                relay_payload(
+                    aethercodex_core::relay_config::relay_status_from_home(&selected_codex_home()),
+                    None,
+                ),
+            );
+        }
+    };
     let settings =
         settings_with_live_ccs_profiles(SettingsStore::default().load().unwrap_or_default());
     if !settings.relay_profiles_enabled {
@@ -1943,7 +1975,19 @@ pub fn apply_pure_api_injection() -> CommandResult<RelayPayload> {
 
 #[tauri::command]
 pub fn clear_relay_injection() -> CommandResult<RelayPayload> {
-    let home = aethercodex_core::relay_config::default_codex_home_dir();
+    // Writing is only ever allowed against AetherCodex's own home.
+    let home = match selected_codex_home_for_writes() {
+        Ok(home) => home,
+        Err(error) => {
+            return failed(
+                &format!("清除中转注入失败：{error}"),
+                relay_payload(
+                    aethercodex_core::relay_config::relay_status_from_home(&selected_codex_home()),
+                    None,
+                ),
+            );
+        }
+    };
     let settings =
         settings_with_live_ccs_profiles(SettingsStore::default().load().unwrap_or_default());
     let relay = settings.active_relay_profile();
@@ -2307,6 +2351,55 @@ fn default_user_script_manager() -> UserScriptManager {
         config_dir.join("user_scripts"),
         config_dir.join("user_scripts.json"),
     )
+}
+
+/// The Codex home the selected profile reads.
+///
+/// Reads are allowed against either home; writes go through
+/// [`selected_codex_home_for_writes`], which refuses the official one.
+/// The profile a launch should use: the request's choice, else the saved one.
+fn resolve_launch_profile(
+    request: &LaunchRequest,
+) -> aethercodex_core::codex_home::CodexHomeProfile {
+    aethercodex_core::codex_home::CodexHomeProfile::parse(&request.home_profile).unwrap_or_else(
+        || {
+            SettingsStore::default()
+                .load()
+                .map(|settings| settings.codex_home_profile)
+                .unwrap_or_default()
+        },
+    )
+}
+
+/// Remember the launched profile so the manager's reads follow the same home.
+fn remember_launch_profile(profile: aethercodex_core::codex_home::CodexHomeProfile) {
+    let store = SettingsStore::default();
+    if let Ok(mut settings) = store.load() {
+        if settings.codex_home_profile != profile {
+            settings.codex_home_profile = profile;
+            let _ = store.save(&settings);
+        }
+    }
+}
+
+fn selected_codex_home() -> PathBuf {
+    let profile = SettingsStore::default()
+        .load()
+        .map(|settings| settings.codex_home_profile)
+        .unwrap_or_default();
+    aethercodex_core::relay_config::codex_home_dir(profile)
+}
+
+/// The Codex home relay injection may write.
+///
+/// Errors when the selected profile is the official `~/.codex`, which belongs
+/// to the user and to the Codex App they launch themselves.
+fn selected_codex_home_for_writes() -> anyhow::Result<PathBuf> {
+    let profile = SettingsStore::default()
+        .load()
+        .map(|settings| settings.codex_home_profile)
+        .unwrap_or_default();
+    aethercodex_core::relay_config::codex_home_dir_for_writes(profile)
 }
 
 fn user_scripts_config_dir() -> PathBuf {

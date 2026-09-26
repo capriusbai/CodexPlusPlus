@@ -891,6 +891,7 @@ async fn launch_lifecycle_uses_hook_supplied_bridge_context_for_injection() {
 
     launch_and_inject_with_hooks(
         LaunchOptions {
+            home_profile: Default::default(),
             app_dir: Some(app_dir),
             debug_port: 9229,
             helper_port: 57321,
@@ -1334,6 +1335,7 @@ impl LaunchHooks for ContextHooks {
         _app_dir: &std::path::Path,
         _debug_port: u16,
         _extra_args: &[String],
+        _home_profile: aethercodex_core::codex_home::CodexHomeProfile,
     ) -> anyhow::Result<CodexLaunch> {
         Ok(CodexLaunch::Process {
             command: vec!["codex".to_string()],
