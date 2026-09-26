@@ -1,7 +1,7 @@
-# Codex++
+# AetherCodex
 
 <p align="center">
-  <img src="docs/images/codex-plus-plus.png" alt="Codex++ 图标" width="160">
+  <img src="docs/images/aethercodex.png" alt="AetherCodex 图标" width="160">
 </p>
 
 <p align="center">
@@ -9,179 +9,122 @@
 </p>
 
 <p align="center">
-  <img alt="Release" src="https://img.shields.io/github/v/release/BigPizzaV3/CodexPlusPlus">
-  <img alt="Stars" src="https://img.shields.io/github/stars/BigPizzaV3/CodexPlusPlus">
-  <img alt="License" src="https://img.shields.io/github/license/BigPizzaV3/CodexPlusPlus">
+  <img alt="Release" src="https://img.shields.io/github/v/release/capriusbai/CodexPlusPlus">
+  <img alt="Stars" src="https://img.shields.io/github/stars/capriusbai/CodexPlusPlus">
+  <img alt="License" src="https://img.shields.io/github/license/capriusbai/CodexPlusPlus">
   <img alt="Rust" src="https://img.shields.io/badge/rust-1.85%2B-orange">
   <img alt="Tauri" src="https://img.shields.io/badge/tauri-2.x-24C8DB">
 </p>
 
-Codex++ 是面向 Codex App 的外部增强启动器和管理工具。它不修改 Codex App 原始安装文件，而是通过外部 launcher 启动 Codex，并使用 Chromium DevTools Protocol 注入增强脚本。
+AetherCodex 是面向 Codex App 的外部增强启动器和管理工具。它不修改 Codex App 原始安装文件，而是通过外部 launcher 启动 Codex，并使用 Chromium DevTools Protocol 注入增强脚本。
 
 ## 快速使用
 
-从 [GitHub Releases](https://github.com/BigPizzaV3/CodexPlusPlus/releases) 下载最新版安装包：
+从 [GitHub Releases](https://github.com/capriusbai/CodexPlusPlus/releases) 下载最新版安装包：
 
-- Windows：`CodexPlusPlus-*-windows-x64-setup.exe`
-- macOS Intel：`CodexPlusPlus-*-macos-x64.dmg`
-- macOS Apple Silicon：`CodexPlusPlus-*-macos-arm64.dmg`
+- Windows：`AetherCodex-*-windows-x64-setup.exe`
+- macOS Intel：`AetherCodex-*-macos-x64.dmg`
+- macOS Apple Silicon：`AetherCodex-*-macos-arm64.dmg`
+- Linux x86_64：`AetherCodex-*-linux-x64.deb` 或 `AetherCodex-*-linux-x64.tar.gz`
+- Linux arm64：`AetherCodex-*-linux-arm64.deb` 或 `AetherCodex-*-linux-arm64.tar.gz`
 
 安装后会有两个入口：
 
-- `Codex++`：静默启动入口，不显示管理界面，只负责启动 Codex 并注入增强功能。
-- `Codex++ 管理工具`：Tauri 控制面板，用于启动、检查、修复、更新、配置中转注入、管理增强功能和用户脚本。
+- `AetherCodex`：静默启动入口，不显示管理界面，只负责启动 Codex 并注入增强功能。
+- `AetherCodex 管理工具`：Tauri 控制面板，用于启动、检查、修复、更新、配置中转注入、管理增强功能和用户脚本。
 
-Windows 安装包会创建桌面和开始菜单快捷方式。macOS DMG 会安装 `/Applications/Codex++.app` 和 `/Applications/Codex++ 管理工具.app`。
+Windows 安装包会创建桌面和开始菜单快捷方式。macOS DMG 会安装 `/Applications/AetherCodex.app` 和 `/Applications/AetherCodex 管理工具.app`。Linux `.deb` 会安装到 `/usr/lib/aethercodex/`，并在应用菜单中注册 `AetherCodex` 与 `AetherCodex Manager` 两个入口。
 
-## 赞助商
+### Ubuntu 26.04 / 24.04、Debian 13+
 
-<p align="center">
-  <a href="https://jojocode.com/">
-    <img src="docs/images/sponsor-jojocode.svg" alt="JOJO Code" height="110">
-  </a>
-</p>
-<p align="center">
-  <a href="https://jojocode.com/"><strong>JOJO Code｜Codex++ 官方中转站</strong></a><br>
-  Codex++ 官方中转站，主打稳定接入和划算价格，支持 GPT-5.5、GPT-5.4、Claude Opus 4.8、Claude Opus 4.7、gpt-image-2 等模型与图像能力，适合日常开发、团队协作和长期项目工作流。
-</p>
+`.deb` 适用于 Ubuntu 24.04 及以上（含 26.04）和 Debian 13 及以上，依赖这些发行版自带的 WebKitGTK 4.1：
 
-<a href="mailto:1727532@qq.com">想显示在下方？</a>
-<p align="center">
-</p>
-<table>
-  <tr>
-    <th width="180">🏆 赞助商 🏆</th>
-    <th>介绍</th>
-  </tr>
-  <tr>
-    <td align="center">
-      <a href="https://jojocode.com/">
-        <img src="docs/images/sponsor-jojocode.svg" alt="JOJO Code" height="80">
-      </a>
-    </td>
-    <td><a href="https://jojocode.com/"><strong>JOJO Code｜Codex++ 官方中转站</strong></a><br>感谢 JOJO Code 赞助本项目。JOJO Code 是 Codex++ 官方中转站，提供价格划算、稳定易接入的 Codex API 中转服务，支持 GPT-5.5、GPT-5.4、Claude Opus 4.8、Claude Opus 4.7、gpt-image-2 等模型与图像能力，适合日常开发、快速配置、团队协作和长期使用。</td>
-  </tr>
-  <tr>
-    <td align="center">
-      <a href="https://aigocode.com/invite/CodexPlusPlus">
-        <img src="docs/images/sponsor-aigocode.png" alt="AIGoCode" height="80">
-      </a>
-    </td>
-    <td><a href="https://aigocode.com/invite/CodexPlusPlus"><strong>AIGoCode</strong></a><br>感谢 AIGoCode 赞助了本项目！AIGoCode 是一个集成了 Claude Code、Codex 以及 Gemini 最新模型的一站式平台，为你提供稳定、高效且高性价比的AI编程服务。本站提供灵活的订阅计划，支持多风险，国内直连，无需魔法，极速响应。AIGoCode 为 CodexPlusPlus 的用户提供了特别福利，通过<a href="https://aigocode.com/invite/CodexPlusPlus">此链接注册</a>的用户首次充值可以获得额外10%奖励额度！</td>
-  </tr>
-  <tr>
-    <td align="center">
-      <a href="https://www.packyapi.com/">
-        <img src="docs/images/sponsor-packycode.png" alt="PackyCode" height="80">
-      </a>
-    </td>
-    <td><a href="https://www.packyapi.com/"><strong>PackyCode</strong></a><br>感谢 PackyCode 赞助了本项目！PackyCode 是一家稳定、高效的API中转服务商，提供 Claude Code、Codex、Gemini 等多种中转服务。PackyCode 为本软件的用户提供了特别优惠，使用此链接注册并在充值时填写"CodexPlusPlus"优惠码，首次充值可以享受9折优惠！</td>
-  </tr>
-  <tr>
-    <td align="center">
-      <a href="https://apikey.fun/register?aff=CODEX">
-        <img src="docs/images/sponsor-apikey-fun.png" alt="APIKEY.FUN" height="80">
-      </a>
-    </td>
-    <td><a href="https://apikey.fun/register?aff=CODEX"><strong>APIKEY.FUN</strong></a><br>感谢 APIKEY.FUN 赞助了本项目！APIKEY.FUN 是一家致力于提供开放、稳定、高性价比的全球主流大模型的 AI 中转站。平台支持 Claude、OpenAI、Gemini 等热门模型的 API 中转服务，价格低至官方原价的 7%。通过专属链接<a href="https://apikey.fun/register?aff=CODEX">注册 APIKEY</a>，可享受最高充值永久 95 折优惠。</td>
-  </tr>
-  <tr>
-    <td align="center">
-      <a href="https://runapi.co/register?aff=AWJq">
-        <img src="docs/images/sponsor-runapi.png" alt="RunAPI" height="80">
-      </a>
-    </td>
-    <td><a href="https://runapi.co/register?aff=AWJq"><strong>RunAPI</strong></a><br>感谢 RunAPI 赞助了本项目！RunAPI 是高效稳定的 API OpenRouter 平替平台，一个 API Key 即可访问 OpenAI、Claude、Gemini、DeepSeek、Grok 等 150+ 主流模型，低至 1 折，极其稳定，可以无缝兼容 Claude Code、OpenClaw 等工具。</td>
-  </tr>
-  <tr>
-    <td align="center">
-      <a href="https://www.0029.org/?promo=AFF11F">
-        <img src="docs/images/sponsor-0029.svg" alt="0029 云桥" height="80">
-      </a>
-    </td>
-    <td><a href="https://www.0029.org/?promo=AFF11F"><strong>0029云桥｜codex api中转站(gpt5.5 gpt-image-2)</strong></a><br>支持个人和企业接入。包月套餐/按量计费，Pro/Plus 号池，全站接口稳定可用，7×24 小时技术支持！</td>
-  </tr>
-  <tr>
-    <td align="center">
-      <a href="https://rawchat.cn">
-        <img src="docs/images/sponsor-rawchat.svg" alt="RawChat" height="80">
-      </a>
-    </td>
-    <td><a href="https://rawchat.cn"><strong>RawChat｜Codex 中转站</strong></a><br>老牌中转站，支持包月套餐。低倍率调用，高缓存命中，Pro/Plus 号池，全天专人维护。</td>
-  </tr>
-  <tr>
-    <td align="center">
-      <a href="https://coder.visioncoder.cn">
-        <img src="https://coder.visioncoder.cn/logo.png" alt="VisionCoder" height="80">
-      </a>
-    </td>
-    <td><a href="https://coder.visioncoder.cn"><strong>VisionCoder 开发平台</strong></a><br>感谢 VisionCoder 对本项目的支持。VisionCoder 开发平台是一个可靠高效的 API 中继服务提供商，提供 Claude Code、Codex、Gemini 等主流 AI 模型，帮助开发者和团队更轻松地集成 AI 功能，提升工作效率。VisionCoder 还为我们的用户提供 <a href="https://coder.visioncoder.cn">Token Plan</a> 限时活动：购买 1 个月，赠送 1 个月。</td>
-  </tr>
-  <tr>
-    <td align="center">
-      <a href="https://aihub2api.cloud/register?promo=CODEXPLUSPLUS">
-        <img src="docs/images/sponsor-aihub2api.png" alt="AIHub2API" height="80">
-      </a>
-    </td>
-    <td><a href="https://aihub2api.cloud/register?promo=CODEXPLUSPLUS"><strong>AIHub2API</strong></a><br>感谢 AIHub2API 赞助了本项目！AIHub2API 是一家稳定、高效的 API 中转服务商，专注 Codex 中转业务，提供高缓存命中、低倍率的中转服务，网络链路优化无需使用魔法，极速响应，价格低至官方原价的 1%。通过<a href="https://aihub2api.cloud/register?promo=CODEXPLUSPLUS">专属链接注册 AIHub2API</a>，赠送 10 美金体验额度。</td>
-  </tr>
-  <tr>
-    <td align="center">
-      <a href="https://www.compshare.cn/?ytag=GPU_YY_git_codex++">
-        <img src="docs/images/sponsor-ucloud-compshare.png" alt="优云智算" height="80">
-      </a>
-    </td>
-    <td><a href="https://www.compshare.cn/?ytag=GPU_YY_git_codex++"><strong>优云智算</strong></a><br>感谢优云智算赞助了本项目！优云智算是 UCloud 旗下 AI 云平台，主打包月、按次的高性价比国模 Agent Plan 套餐，低至 49 元/月起。同时提供官转稳定海外模型，支持接入 Claude Code、Codex 及 API 调用，支持企业高并发、7×24 技术支持、自助开票。通过此链接注册的用户，可得免费 5 元平台体验金！</td>
-  </tr>
-  <tr>
-    <td align="center">
-      <a href="https://cubence.com?source=codexplusplus">
-        <img src="docs/images/sponsor-cubence.png" alt="Cubence" height="80">
-      </a>
-    </td>
-    <td><a href="https://cubence.com?source=codexplusplus"><strong>Cubence</strong></a><br>感谢 Cubence 对本项目的支持。Cubence 是一家致力为客户提供稳定、高效的 API 中转服务商。从 25 年 9 月运营至今，提供了 Claude Code、Codex、Gemini 等多种模型支持。Cubence 为本开源项目多用户提供了特别的专属优惠 <code>CODEXPLUSPLUS</code>，在首次购买时享受 8.8 折优惠！</td>
-  </tr>
-  <tr>
-    <td align="center">
-      <a href="https://maolaoapi.com">
-        <img src="docs/images/sponsor-maolao-api.jpg" alt="MaoLao API" height="80">
-      </a>
-    </td>
-    <td><a href="https://maolaoapi.com"><strong>MaoLao API</strong></a><br>MaoLao API 是一家专注 VibeCoding 主流模型的 API 中转站，有自己的纯 Pro20X/Plus 号池，所以在低倍率的情况下还能做到低价套餐，套餐所有模型以及分组无限制！猫佬API：maolaoapi.com</td>
-  </tr>
-  <tr>
-    <td align="center">
-      <a href="https://unity2.ai/register?source=codexplusplus">
-        <img src="docs/images/sponsor-unity2.png" alt="Unity2.ai" height="80">
-      </a>
-    </td>
-    <td><a href="https://unity2.ai/register?source=codexplusplus"><strong>Unity2.ai</strong></a><br>感谢 Unity2.ai 赞助了本项目！Unity2.ai 是面向个人开发者、团队和企业的高性能 AI 模型 API 中转平台，长期服务国内头部企业，日均承载超 300 亿 token 调用，支持 5000 RPM 级高并发。支持余额计费、首充赠额、组合订阅、企业开票和专属对接。通过<a href="https://unity2.ai/register?source=codexplusplus">此链接注册</a>可领取 $2 余额，加入官方群再送 $10 余额，最高可领 $12 免费额度。</td>
-  </tr>
-</table>
+```bash
+sudo apt install ./AetherCodex-1.3.0-linux-x64.deb
+```
+
+`apt` 会自动补齐 `libwebkit2gtk-4.1-0`、`libgtk-3-0t64` 等运行时依赖。如果用 `dpkg -i` 安装后提示缺少依赖，执行 `sudo apt -f install` 补齐即可。
+
+卸载：
+
+```bash
+sudo apt remove aethercodex
+```
+
+### 其他发行版（tar.gz）
+
+`.tar.gz` 不依赖包管理器，解压后按当前用户安装到 `~/.local`：
+
+```bash
+tar -xzf AetherCodex-1.3.0-linux-x64.tar.gz
+cd AetherCodex-1.3.0-linux-x64
+./install.sh            # 也可用 PREFIX=/opt/aethercodex ./install.sh
+```
+
+先确认发行版已提供 WebKitGTK 4.1 运行库（Ubuntu/Debian 为 `libwebkit2gtk-4.1-0`、Fedora 为 `webkit2gtk4.1`、Arch 为 `webkit2gtk-4.1`）。卸载执行同目录下的 `./uninstall.sh`。
+
+`install.sh` 会调用 `aethercodex-manager --install-entrypoints` 写入用户级 `.desktop` 入口；也可以随时手动执行该命令重建入口，或用 `--uninstall-entrypoints` 移除。
+
+## 关于本分支与上游项目
+
+AetherCodex 是 [Codex++](https://github.com/BigPizzaV3/CodexPlusPlus) 的重新品牌化分支，由 Archai 维护。上游
+项目由 BigPizzaV3 以 MIT 协议发布，核心的外部启动与 CDP 注入思路、增强脚本和
+大量功能实现都来自上游，版权声明按 MIT 要求保留在安装包的 `copyright` 中。
+
+本分支相对上游的改动：
+
+- 品牌、命名、安装包标识和界面视觉改为 AetherCodex / Archai CI-VI；
+- 新增 Linux 发布支持（Ubuntu 24.04 及以上，含 26.04）；
+- 自动更新指向本分支的 Release，不再拉取上游安装包。
+
+本分支移除了上游的推荐/广告功能和赞赏入口：不再拉取远端广告列表，界面里也没有
+赞赏码。上游的赞助商、交流群和赞赏渠道属于上游项目，需要支持原作者请直接访问
+[上游仓库](https://github.com/BigPizzaV3/CodexPlusPlus)。
 
 ## 交流与支持
 
-欢迎加入 Codex++ 交流群（QQ群：1103050832），反馈问题、交流使用体验或提出新功能建议。
+本分支的问题与建议请提到 [Issues](https://github.com/capriusbai/CodexPlusPlus/issues)。
 
-微信群：<a href="https://docs.qq.com/doc/DQ2VOanZTTFZJcUpZ#">点击这里获取最新微信群二维码</a>。
+上游 Codex++ 的社区（QQ 群、微信群、Telegram 频道）与本分支无关，入口在
+[上游仓库](https://github.com/BigPizzaV3/CodexPlusPlus)。
 
-<img src="docs/images/discussion-group-qr.jpg" alt="Codex++ 微信群二维码" width="260">
+## 品牌与界面
 
-Telegram 频道：<https://t.me/CodexPlusPlus>
+界面遵循 Archai CI/VI 工作标准（`ARCHAI-CIVI-001`）：方形几何、发丝线分隔、
+克制的语义化用色，不使用装饰性阴影、渐变和毛玻璃。
 
-如果 Codex++ 帮到了你，可以请我喝杯咖啡，或者随手赞赏支持一下继续维护。
+| 色彩 | sRGB | 语义 |
+| --- | --- | --- |
+| Archai Orange | `#ED9527` | 品牌锚点、章节标记。**不可**在浅色背景上作为小号正文（白底仅 2.35:1） |
+| Aether Blue | `#2F6FED` | 连接、交互、链接、可编辑字段 |
+| Evidence Green | `#2F855A` | 仅用于有证据支撑的「已验证 / 已发布 / 已关闭」状态 |
+| Engineering Graphite | `#0B0D10` | 主要文字与技术权威色 |
+| Secondary Ink | `#626A78` | 元数据与次要文案 |
+| Soft Surface | `#F7F9FC` | 非语义的表面分层 |
+| Hairline | `#DDE3EC` | 分隔线与表格边界 |
 
-<p align="center">
-  <img src="docs/images/sponsor-alipay.jpg" alt="支付宝赞赏码" width="220">
-  <img src="docs/images/sponsor-wechat.jpg" alt="微信赞赏码" width="220">
-</p>
+蓝色和绿色在深色主题下提亮、浅色主题下加深，保证两种主题都达到 WCAG AA 正文
+对比度（4.5:1）。橙色在浅色主题下另有一个加深的 ink 变体用于文字和图标。
+
+### 更换 Logo
+
+全部图标由一个母版生成：
+
+```bash
+# 替换 assets/brand/aethercodex-mark.svg（或 .png，>= 1024x1024），然后：
+bash scripts/brand/generate-icons.sh          # 重新生成 Windows .ico / macOS .icns / Linux PNG / 应用图标
+bash scripts/brand/generate-icons.sh --check  # 校验图标与母版是否一致（CI 会跑）
+```
+
+母版是项目方提供的 Aether Logo，已用 `potrace` 矢量化后置于石墨底上；
+来源、哈希和使用边界见 [`assets/brand/README.md`](assets/brand/README.md)。
 
 ## 主要功能
 
 - Rust 后端和静默 launcher，启动时不依赖额外运行时。
 - Tauri + React 管理工具，支持深色/浅色切换。
 - 外部 CDP 注入，不改 `app.asar`，不向 Codex 安装目录写入 DLL。
-- 中转注入模式：支持多个中转配置，写入 `CodexPlusPlus` provider，并可切回官方 ChatGPT 登录态。
+- 中转注入模式：支持多个中转配置，写入 `AetherCodex` provider，并可切回官方 ChatGPT 登录态。
 - 传统增强模式：插件入口解锁、特殊插件强制安装、会话删除、Markdown 导出、项目移动、Timeline 等。
 - 用户脚本独立管理，可在启动时注入自定义脚本。
 - Provider 同步：启动前同步本地会话 metadata，切换供应商后旧会话仍可见。
@@ -190,6 +133,7 @@ Telegram 频道：<https://t.me/CodexPlusPlus>
 - GitHub Release 自动更新，管理工具和静默启动器都会检测可用更新。
 - Windows 单实例、无黑框启动、管理员权限清单、系统桌面路径识别。
 - macOS x64/arm64 分架构 DMG，静默入口隐藏 Dock 图标。
+- Linux x64/arm64 分架构 `.deb` 与便携 `.tar.gz`，遵循 XDG 规范注册 `.desktop` 入口和 hicolor 图标。
 
 ## 痛点与解决
 
@@ -201,14 +145,14 @@ Codex 原生会话列表只有归档入口，没有真正的删除按钮：
 
 ![原生会话列表缺少删除能力](docs/images/pain-no-delete-button.png)
 
-Codex++ 启动后会解锁插件入口，并在会话列表悬停时显示删除按钮：
+AetherCodex 启动后会解锁插件入口，并在会话列表悬停时显示删除按钮：
 
-![Codex++ 解锁插件入口并添加删除按钮](docs/images/solution-plugin-and-delete.png)
+![AetherCodex 解锁插件入口并添加删除按钮](docs/images/solution-plugin-and-delete.png)
 
-顶部菜单栏会出现 `Codex++`，可以查看后端状态并打开设置面板：
+顶部菜单栏会出现 `AetherCodex`，可以查看后端状态并打开设置面板：
 
-![Codex++ 后端状态指示灯](docs/images/backend-status-indicator.png)
-![Codex++ 设置面板](docs/images/settings-panel.png)
+![AetherCodex 后端状态指示灯](docs/images/backend-status-indicator.png)
+![AetherCodex 设置面板](docs/images/settings-panel.png)
 
 ## 中转注入
 
@@ -234,15 +178,15 @@ Codex++ 启动后会解锁插件入口，并在会话列表悬停时显示删除
 1. 确认已经检测到 ChatGPT 登录状态。
 2. 添加一个或多个中转配置，填写 Base URL 和 Key。
 3. 选择当前配置并应用中转注入。
-4. 启动 `Codex++`。
+4. 启动 `AetherCodex`。
 
-Codex++ 会在 `~/.codex/config.toml` 中写入类似配置：
+AetherCodex 会在 `~/.codex/config.toml` 中写入类似配置：
 
 ```toml
-model_provider = "CodexPlusPlus"
+model_provider = "AetherCodex"
 
-[model_providers.CodexPlusPlus]
-name = "CodexPlusPlus"
+[model_providers.AetherCodex]
+name = "AetherCodex"
 wire_api = "responses"
 requires_openai_auth = true
 base_url = "https://example.com/v1"
@@ -253,40 +197,29 @@ experimental_bearer_token = "sk-..."
 
 ## 增强功能
 
-增强功能在管理工具中统一开关。默认开启增强注入；关闭后不会注入 Codex++ 菜单和脚本。
+增强功能在管理工具中统一开关。默认开启增强注入；关闭后不会注入 AetherCodex 菜单和脚本。
 
-如果启用中转注入模式，插件入口解锁和强制安装不再需要，界面会提示“中转注入模式下无需开启”。会话删除、导出、移动、Timeline、推荐内容和用户脚本等增强仍可继续使用。
-
-## 推荐内容
-
-推荐内容来自远程广告列表：
-
-```text
-https://raw.githubusercontent.com/BigPizzaV3/Ad-List/main/ads.json
-https://cdn.jsdelivr.net/gh/BigPizzaV3/Ad-List@main/ads.json
-```
-
-请求时会自动追加 `?v=时间戳` 绕开 CDN 旧缓存。推荐内容加载慢不会影响后端连接状态。
+如果启用中转注入模式，插件入口解锁和强制安装不再需要，界面会提示“中转注入模式下无需开启”。会话删除、导出、移动、Timeline 和用户脚本等增强仍可继续使用。
 
 ## 自动更新与安装包
 
-Codex++ 通过 GitHub Release 发布安装包。Windows 会生成 NSIS 安装程序，macOS 会生成 Intel x64 和 Apple Silicon arm64 两个 DMG。
+AetherCodex 通过 GitHub Release 发布安装包。Windows 会生成 NSIS 安装程序，macOS 会生成 Intel x64 和 Apple Silicon arm64 两个 DMG，Linux 会生成 x64 和 arm64 的 `.deb` 与 `.tar.gz`。
 
-管理工具的“关于”页可以检查并启动更新。静默启动器发现新版本时会拉起管理工具并进入更新提示。
+管理工具的“关于”页可以检查并启动更新。静默启动器发现新版本时会拉起管理工具并进入更新提示。更新时只会挑选与当前系统和 CPU 架构匹配的安装包：Linux 优先 `.deb`，没有匹配的 `.deb` 时回退到同架构的 `.tar.gz`。
 
 ## 数据位置
 
 - Codex 配置：`~/.codex/config.toml`
 - Codex 登录状态：`~/.codex/auth.json`
 - Codex 本地数据库：`~/.codex/state_5.sqlite`
-- Codex++ 状态与日志：`~/.codex-session-delete/`
+- AetherCodex 状态与日志：`~/.aethercodex/`
 - Provider 同步备份：`~/.codex/backups_state/provider-sync`
 
 ## 常见问题
 
-### Codex++ 菜单没出现
+### AetherCodex 菜单没出现
 
-确认是从 `Codex++` 入口启动，而不是原版 Codex。也可以打开管理工具的“诊断”和“日志”页面查看注入状态。
+确认是从 `AetherCodex` 入口启动，而不是原版 Codex。也可以打开管理工具的“诊断”和“日志”页面查看注入状态。
 
 ### 插件内显示后端连不上
 
@@ -296,42 +229,94 @@ Codex++ 通过 GitHub Release 发布安装包。Windows 会生成 NSIS 安装程
 Invoke-RestMethod -Method Post -Uri http://127.0.0.1:57321/backend/status -Body "{}" -ContentType "application/json"
 ```
 
-如果接口正常，但插件仍显示超时，通常是 Codex 页面里的 CDP bridge 或脚本缓存问题。重启 Codex++，或在管理工具里查看日志中的 `renderer.script_loaded`、`bridge.request`、`bridge.response`。
+如果接口正常，但插件仍显示超时，通常是 Codex 页面里的 CDP bridge 或脚本缓存问题。重启 AetherCodex，或在管理工具里查看日志中的 `renderer.script_loaded`、`bridge.request`、`bridge.response`。
 
 ### Upstream worktree 和 Codex 原生创建有什么区别
 
-Codex++ 的 Upstream worktree 功能等价于先更新远端分支，再执行：
+AetherCodex 的 Upstream worktree 功能等价于先更新远端分支，再执行：
 
 ```bash
 git worktree add -b <new-branch> <worktree-path> upstream/<base-branch>
 ```
 
-这样新 worktree 从最新的远端跟踪分支开始，而不是从当前会话所在的本地 HEAD 开始。如果 Codex++ 无法安全识别当前 Codex 版本的原生 worktree 创建表单，请从 Codex++ 菜单中手动填写仓库路径、分支名、worktree 路径、remote 和 base branch。
+这样新 worktree 从最新的远端跟踪分支开始，而不是从当前会话所在的本地 HEAD 开始。如果 AetherCodex 无法安全识别当前 Codex 版本的原生 worktree 创建表单，请从 AetherCodex 菜单中手动填写仓库路径、分支名、worktree 路径、remote 和 base branch。
 
 ### macOS 提示无法打开或已损坏
 
 当前安装包未签名/未公证时，macOS Gatekeeper 可能拦截，出现“已损坏，无法打开”的提示：
 
-![macOS 提示 Codex++ 管理工具已损坏](docs/images/macos-damaged-warning.png)
+![macOS 提示 AetherCodex 管理工具已损坏](docs/images/macos-damaged-warning.png)
 
 如果遇到该提示，可以在终端执行下面两条命令，解除苹果系统的安全隔离限制：
 
 ```bash
-sudo xattr -rd com.apple.quarantine /Applications/Codex++\ 管理工具.app
-sudo xattr -rd com.apple.quarantine /Applications/Codex++.app
+sudo xattr -rd com.apple.quarantine /Applications/AetherCodex\ 管理工具.app
+sudo xattr -rd com.apple.quarantine /Applications/AetherCodex.app
 ```
 
-执行后重新打开 `Codex++` 或 `Codex++ 管理工具` 即可。
+执行后重新打开 `AetherCodex` 或 `AetherCodex 管理工具` 即可。
 
 ### macOS Intel 能用吗
 
 可以。Release 会分别提供 `macos-x64.dmg` 和 `macos-arm64.dmg`。Intel Mac 下载 x64 包，Apple Silicon 下载 arm64 包。
 
+### Linux 上管理工具启动后是空白窗口
+
+这是 WebKitGTK 的渲染问题，不是注入失败。先尝试关闭硬件加速：
+
+```bash
+WEBKIT_DISABLE_DMABUF_RENDERER=1 aethercodex-manager
+```
+
+Ubuntu 24.04 起内核默认开启 `kernel.apparmor_restrict_unprivileged_userns=1`，会阻止依赖 bubblewrap 沙箱的进程创建 user namespace。AetherCodex 管理工具自身不使用该沙箱，但被拉起的 Codex App（Electron/Chromium）可能受影响。如果 Codex 本体起不来，可加载 Ubuntu 自带的 `bwrap-userns-restrict` 配置：
+
+```bash
+sudo apt install apparmor-profiles
+sudo install -m 0644 /usr/share/apparmor/extra-profiles/bwrap-userns-restrict /etc/apparmor.d/bwrap-userns-restrict
+sudo apparmor_parser -r /etc/apparmor.d/bwrap-userns-restrict
+```
+
+### Linux 上找不到 Codex App
+
+Linux 没有 MS Store / `/Applications` 这样的固定安装位置，AetherCodex 会在 `/opt`、`/usr/lib`、`/usr/share`、`~/.local/share`、`~/Applications` 等目录下查找包含 Codex 可执行文件（`Codex`、`codex`、`codex-app`）的目录，以及名字含 `codex` 的 `.AppImage`。
+
+只有确实包含可执行文件的目录才会被采纳，因此 `PATH` 上的 `codex` CLI 不会被误认成桌面版。自动识别失败时，在管理工具的设置里手动填写 Codex App 路径（可以直接填 `.AppImage` 文件路径）。
+
+## 使用说明书
+
+管理工具的「使用说明」页内置了完整说明书，离线可读，覆盖工作原理、安装、界面导览、
+供应商与中转注入、增强开关、脚本、数据位置和故障排查。
+
+源文件是 `apps/aethercodex-manager/public/help.html`（自带样式的独立 HTML）。
+版本号由 CI 校验：
+
+```bash
+python3 scripts/help/check-help-version.py
+```
+
+`version.rs` 一升版本、说明书没同步更新，CI 就会失败。
+
+## 上游同步
+
+本分支是上游 Codex++ 的重命名精简分叉，路径全改过且刻意删掉了部分功能，**不能直接
+`git merge upstream/main`**。改用分类报告：
+
+```bash
+python3 scripts/upstream/check_upstream.py          # 上游有哪些改动值得看
+python3 scripts/upstream/check_upstream.py --json
+python3 scripts/upstream/check_upstream.py --set-baseline <sha>   # 评审完记录进度
+```
+
+它把上游 commit 分成三类：**portable**（动到我们仍保留的代码）、**new**（上游独有子系统，
+是否采纳属于产品决策）、**declined**（只碰了我们刻意删掉的广告/赞赏，永远跳过）。
+`.github/workflows/upstream-watch.yml` 每天跑一次并维护一个跟踪 issue，
+基线记录在 `.upstream-sync.json`。
+
 ## 开发
 
 ```bash
 # 前端检查
-cd apps/codex-plus-manager
+cd apps/aethercodex-manager
 npm install
 npm run check
 npm run vite:build
@@ -347,22 +332,34 @@ cargo build --release
 
 ```text
 apps/
-  codex-plus-launcher/          静默启动入口
-  codex-plus-manager/           Tauri 管理工具
+  aethercodex-launcher/          静默启动入口
+  aethercodex-manager/           Tauri 管理工具
 assets/inject/
   renderer-inject.js            注入到 Codex 渲染端的增强脚本
 crates/
-  codex-plus-core/              启动、注入、配置、更新、安装、桥接等核心逻辑
-  codex-plus-data/              会话数据、导出、Provider 同步
+  aethercodex-core/              启动、注入、配置、更新、安装、桥接等核心逻辑
+  aethercodex-data/              会话数据、导出、Provider 同步
 scripts/installer/
-  windows/CodexPlusPlus.nsi     Windows NSIS 安装包
+  windows/AetherCodex.nsi     Windows NSIS 安装包
   macos/package-dmg.sh          macOS DMG 打包
+  linux/package-linux.sh        Linux .deb 与 .tar.gz 打包
 ```
+
+Linux 本地打包（需要先 `cargo build --release`）：
+
+```bash
+sudo apt install libwebkit2gtk-4.1-dev libgtk-3-dev librsvg2-dev desktop-file-utils
+cargo build --release
+bash scripts/installer/linux/package-linux.sh 1.3.0     # 架构默认取本机，可显式传 x64 / arm64
+```
+
+产物在 `dist/linux/`。CI 固定在 `ubuntu-24.04` 上构建：它的 glibc 与 WebKitGTK 4.1 soname 是需要支持的最低版本，更新的 Ubuntu（25.10、26.04）向下兼容。
 
 ## 友情链接
 
+- [上游项目 Codex++](https://github.com/BigPizzaV3/CodexPlusPlus)
 - [LINUX DO](https://linux.do)
 
 ## 说明
 
-Codex++ 是外部增强工具，不修改 Codex App 原始文件。Codex App 更新后，如果页面结构变化，可能需要更新注入脚本。
+AetherCodex 是外部增强工具，不修改 Codex App 原始文件。Codex App 更新后，如果页面结构变化，可能需要更新注入脚本。

@@ -6,7 +6,7 @@ venv/
 build/
 dist/
 target/
-apps/codex-plus-manager/src-tauri/gen/
+apps/aethercodex-manager/src-tauri/gen/
 
 .codex_asar_extract/
 .codex_asar_extract_latest/
@@ -17,3 +17,6 @@ docs/superpowers/
 *.log
 .DS_Store
 Thumbs.db
+
+# Node dependencies (installed per checkout by `npm install`)
+node_modules/

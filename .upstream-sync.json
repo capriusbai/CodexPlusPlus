@@ -1,0 +1,21 @@
+{
+  "_comment": "Tracks how far upstream Codex++ has been reviewed. Update `baseline` only after the commits up to it have been ported or consciously declined.",
+  "upstream_remote": "https://github.com/BigPizzaV3/CodexPlusPlus.git",
+  "upstream_branch": "main",
+  "baseline": "5e8818646f0a3e1c7eb21cce3f466d7b7657b5e5",
+  "baseline_note": "Fork point. The 2.0.0 rebrand was built on this commit; nothing after it has been reviewed yet.",
+  "path_map": {
+    "crates/codex-plus-core/": "crates/aethercodex-core/",
+    "crates/codex-plus-data/": "crates/aethercodex-data/",
+    "apps/codex-plus-launcher/": "apps/aethercodex-launcher/",
+    "apps/codex-plus-manager/": "apps/aethercodex-manager/",
+    "scripts/installer/windows/CodexPlusPlus.nsi": "scripts/installer/windows/AetherCodex.nsi"
+  },
+  "declined_paths": [
+    "crates/codex-plus-core/src/ads.rs",
+    "crates/codex-plus-core/tests/ads.rs",
+    "assets/images/sponsor-",
+    "docs/images/sponsor-"
+  ],
+  "declined_note": "Recommendation/ad feed and donation entries were removed on purpose; upstream changes to them are never ported."
+}

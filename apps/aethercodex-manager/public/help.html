@@ -1,0 +1,463 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Kept in step with the app: scripts/help/check-help-version.py fails CI when
+     this does not match aethercodex-core's VERSION. -->
+<meta name="aethercodex-version" content="2.0.0">
+<title>AetherCodex 使用说明</title>
+<style>
+  /* ARCHAI CI/VI — square geometry, hairline rules, no shadow or gradient.
+     Mirrors the tokens in src/styles.css; this page is loaded in an iframe and
+     cannot inherit them. */
+  :root {
+    --graphite: #0B0D10;
+    --soft-surface: #F7F9FC;
+    --secondary-ink: #626A78;
+    --hairline: #DDE3EC;
+    --anchor: #ED9527;
+    --anchor-ink: #A9640E;
+    --interactive: #3070ED;
+    --verified: #2D8057;
+
+    --bg: var(--soft-surface);
+    --fg: var(--graphite);
+    --card: #FFFFFF;
+    --muted: var(--secondary-ink);
+    --rule: var(--hairline);
+    --link: var(--interactive);
+    --mark: var(--anchor-ink);
+    --ok: var(--verified);
+    --code-bg: #EEF2F8;
+  }
+  :root[data-theme="dark"] {
+    --bg: var(--graphite);
+    --fg: #F7F9FC;
+    --card: #12161C;
+    --muted: #97A0B0;
+    --rule: #232A34;
+    --link: #3A76EE;
+    --mark: #EB8B14;
+    --ok: #359766;
+    --code-bg: #171C24;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: var(--graphite);
+      --fg: #F7F9FC;
+      --card: #12161C;
+      --muted: #97A0B0;
+      --rule: #232A34;
+      --link: #3A76EE;
+      --mark: #EB8B14;
+      --ok: #359766;
+      --code-bg: #171C24;
+    }
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: Inter, "Segoe UI", "Microsoft YaHei", system-ui, -apple-system, sans-serif;
+    font-size: 14px;
+    line-height: 1.65;
+  }
+  .layout { display: grid; grid-template-columns: 232px minmax(0, 1fr); gap: 0; }
+  nav {
+    position: sticky; top: 0; align-self: start; height: 100vh; overflow-y: auto;
+    border-right: 1px solid var(--rule); padding: 20px 16px;
+  }
+  nav h2 {
+    margin: 0 0 12px; font-size: 12px; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--muted); font-weight: 600;
+  }
+  nav a {
+    display: block; padding: 5px 8px; margin: 0 -8px; color: var(--fg);
+    text-decoration: none; border-left: 2px solid transparent; font-size: 13px;
+  }
+  nav a:hover { background: var(--code-bg); }
+  nav a.active { border-left-color: var(--anchor); background: var(--code-bg); font-weight: 600; }
+
+  main { padding: 28px 32px 96px; max-width: 860px; }
+  h1 { font-size: 26px; margin: 0 0 4px; line-height: 1.25; }
+  .lede { color: var(--muted); margin: 0 0 28px; }
+  section { scroll-margin-top: 16px; padding-top: 12px; }
+  h2 {
+    font-size: 18px; margin: 32px 0 10px; padding-bottom: 6px;
+    border-bottom: 1px solid var(--rule);
+  }
+  h2::before {
+    content: ""; display: inline-block; width: 3px; height: 15px;
+    background: var(--anchor); margin-right: 9px; vertical-align: -2px;
+  }
+  h3 { font-size: 15px; margin: 22px 0 6px; }
+  p, ul, ol { margin: 8px 0; }
+  ul, ol { padding-left: 22px; }
+  li { margin: 3px 0; }
+  a { color: var(--link); }
+  code {
+    background: var(--code-bg); padding: 1px 5px; border-radius: 2px;
+    font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 12.5px;
+  }
+  pre {
+    background: var(--code-bg); border: 1px solid var(--rule); border-radius: 2px;
+    padding: 12px 14px; overflow-x: auto; margin: 10px 0;
+  }
+  pre code { background: none; padding: 0; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 13px; }
+  th, td { border: 1px solid var(--rule); padding: 7px 10px; text-align: left; vertical-align: top; }
+  th { background: var(--code-bg); font-weight: 600; }
+  .note, .warn {
+    border: 1px solid var(--rule); border-left: 3px solid var(--link);
+    background: var(--card); padding: 10px 14px; margin: 14px 0; border-radius: 2px;
+  }
+  .warn { border-left-color: var(--mark); }
+  .note strong, .warn strong { display: block; margin-bottom: 2px; }
+  .warn strong { color: var(--mark); }
+  .steps { counter-reset: step; list-style: none; padding-left: 0; }
+  .steps > li { counter-increment: step; padding-left: 30px; position: relative; margin: 10px 0; }
+  .steps > li::before {
+    content: counter(step); position: absolute; left: 0; top: 1px;
+    width: 20px; height: 20px; display: grid; place-items: center;
+    background: var(--link); color: #fff; font-size: 11px; font-weight: 700;
+  }
+  footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule); color: var(--muted); font-size: 12px; }
+  @media (max-width: 760px) {
+    .layout { grid-template-columns: 1fr; }
+    nav { position: static; height: auto; border-right: none; border-bottom: 1px solid var(--rule); }
+    main { padding: 20px 16px 64px; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+<nav>
+  <h2>目录</h2>
+  <a href="#what">这是什么</a>
+  <a href="#how">工作原理</a>
+  <a href="#install">安装与入口</a>
+  <a href="#first-run">第一次使用</a>
+  <a href="#ui">界面导览</a>
+  <a href="#profile">官方配置 vs 中转配置</a>
+  <a href="#relay">供应商与中转注入</a>
+  <a href="#enhance">页面增强</a>
+  <a href="#scripts">脚本市场</a>
+  <a href="#sessions">会话管理</a>
+  <a href="#zed">Zed 远程项目</a>
+  <a href="#update">更新机制</a>
+  <a href="#paths">数据位置与端口</a>
+  <a href="#trouble">故障排查</a>
+  <a href="#uninstall">卸载</a>
+</nav>
+
+<main>
+<h1>AetherCodex 使用说明</h1>
+<p class="lede">版本 2.0.0 · 面向 Codex App 的外部增强启动器与管理工具</p>
+
+<section id="what">
+<h2>这是什么</h2>
+<p>AetherCodex 由两个程序组成：</p>
+<table>
+  <tr><th>程序</th><th>作用</th></tr>
+  <tr><td><code>aethercodex</code><br>（静默启动入口）</td><td>不显示任何界面。启动 Codex App，注入增强脚本，然后在后台守着连接。日常用它开 Codex。</td></tr>
+  <tr><td><code>aethercodex-manager</code><br>（管理工具）</td><td>控制面板。配置供应商、开关增强功能、管理脚本、查看日志、检查更新。</td></tr>
+</table>
+<div class="note"><strong>它不改动 Codex App</strong>
+AetherCodex 不修改 <code>app.asar</code>，不往 Codex 安装目录写任何文件，也不打补丁。Codex 升级后它照常工作；只有当 Codex 的页面结构变化时，才可能需要更新注入脚本。</div>
+</section>
+
+<section id="how">
+<h2>工作原理</h2>
+<p>理解这四步，后面所有配置和故障排查都好懂了：</p>
+<ol class="steps">
+  <li><strong>启动</strong>：启动器找到 Codex App 可执行文件，带上 <code>--remote-debugging-port=9229</code> 启动它。这是 Chromium 自带的调试开关，不是破解。</li>
+  <li><strong>连接</strong>：通过 Chromium DevTools Protocol（CDP）连到这个端口，找到 Codex 的页面目标。</li>
+  <li><strong>注入</strong>：把增强脚本（<code>renderer-inject.js</code>）注入到页面里。菜单、会话删除、导出、Timeline 这些都来自这个脚本。</li>
+  <li><strong>桥接</strong>：脚本需要做前端做不了的事（读本地数据库、改配置文件）时，通过本机 helper 端口回调后端。后端还会做心跳检查，掉线自动重注入。</li>
+</ol>
+<p>所以：<strong>必须用 <code>AetherCodex</code> 入口启动 Codex</strong>。直接点原版 Codex 图标不会有任何增强，因为没人给它开调试端口。</p>
+</section>
+
+<section id="install">
+<h2>安装与入口</h2>
+<h3>Windows</h3>
+<p>运行 <code>AetherCodex-*-windows-x64-setup.exe</code>。安装到 <code>%LOCALAPPDATA%\Programs\AetherCodex</code>，自动创建桌面和开始菜单快捷方式。</p>
+<h3>macOS</h3>
+<p>打开 <code>AetherCodex-*-macos-{x64,arm64}.dmg</code>，把两个 app 拖进「应用程序」。Intel 机器用 x64，Apple Silicon 用 arm64。</p>
+<div class="warn"><strong>macOS 提示「已损坏」</strong>
+安装包未签名/未公证时 Gatekeeper 会拦截。终端执行：
+<pre><code>sudo xattr -rd com.apple.quarantine "/Applications/AetherCodex.app"
+sudo xattr -rd com.apple.quarantine "/Applications/AetherCodex 管理工具.app"</code></pre></div>
+<h3>Linux（Ubuntu 24.04 及以上，含 26.04；Debian 13+）</h3>
+<pre><code>sudo apt install ./AetherCodex-2.0.0-linux-x64.deb</code></pre>
+<p>apt 会自动补齐 WebKitGTK 4.1 等依赖，并在应用菜单注册两个入口。其他发行版用 <code>.tar.gz</code>：</p>
+<pre><code>tar -xzf AetherCodex-2.0.0-linux-x64.tar.gz
+cd AetherCodex-2.0.0-linux-x64
+./install.sh            # 装到 ~/.local，可用 PREFIX= 改位置</code></pre>
+<p>无桌面会话时可以直接用 <code>aethercodex-manager --install-entrypoints</code> 注册入口。</p>
+</section>
+
+<section id="first-run">
+<h2>第一次使用</h2>
+<ol class="steps">
+  <li>打开 <strong>AetherCodex 管理工具</strong>，停在「概览」页。</li>
+  <li>点 <strong>检查</strong>。健康检查会告诉你 Codex App 有没有找到、入口有没有装好。</li>
+  <li>如果提示找不到 Codex App，去「设置」手动填 Codex App 路径（见下方故障排查）。</li>
+  <li>需要走自定义 API 就去「供应商配置」，否则跳过。</li>
+  <li>回概览点 <strong>启动 AetherCodex</strong>，或直接用桌面的 <code>AetherCodex</code> 入口。</li>
+  <li>Codex 起来后，页面里应该能看到 AetherCodex 菜单。没有就看故障排查。</li>
+</ol>
+</section>
+
+<section id="ui">
+<h2>界面导览</h2>
+<table>
+  <tr><th>页面</th><th>用来干什么</th></tr>
+  <tr><td>概览</td><td>健康检查、一键启动/重启、快速修复入口和后端。出问题先看这里。</td></tr>
+  <tr><td>供应商配置</td><td>管理 API 供应商、协议、Key 和写入 Codex 的配置文件。核心功能，详见下一节。</td></tr>
+  <tr><td>会话管理</td><td>读取 Codex 本地 <code>state_5.sqlite</code>，查看和删除会话（连同 rollout 文件）。</td></tr>
+  <tr><td>工具与插件</td><td>统一管理 MCP servers、Skills、Plugins，独立于供应商。</td></tr>
+  <tr><td>页面增强</td><td>所有注入到 Codex 页面的功能开关。</td></tr>
+  <tr><td>Zed 远程项目</td><td>识别 Codex 的 SSH 远程项目，用 Zed Remote Development 打开。</td></tr>
+  <tr><td>脚本市场</td><td>浏览、安装、启停用户脚本。</td></tr>
+  <tr><td>安装维护</td><td>安装/修复/卸载入口，Watcher 自启动，手动启动参数。</td></tr>
+  <tr><td>关于</td><td>版本、项目链接、检查更新、日志和诊断报告。</td></tr>
+  <tr><td>设置</td><td>主题、Codex App 路径、命令包装器、额外启动参数。</td></tr>
+</table>
+</section>
+
+<section id="profile">
+<h2>官方配置 vs 中转配置</h2>
+<p>启动 Codex 时，AetherCodex 让你选它读哪一份配置。这个选择每次启动都显式做，不是藏在设置里的模式。</p>
+<table>
+  <tr><th></th><th>启动（官方配置）</th><th>启动（中转配置）</th></tr>
+  <tr><td><strong>配置目录</strong></td><td><code>~/.codex</code></td><td><code>~/.aethercodex/codex-home</code></td></tr>
+  <tr><td><strong>谁在写</strong></td><td><strong>只有你自己。</strong>AetherCodex 全程只读</td><td>只有 AetherCodex</td></tr>
+  <tr><td><strong>中转注入</strong></td><td><strong>不可用</strong>，会明确报错而不是改写你的配置</td><td>可用，只写这个目录</td></tr>
+  <tr><td><strong>登录态</strong></td><td>你平时的登录</td><td>首次启动从官方<strong>复制</strong>一份，之后两边独立</td></tr>
+  <tr><td><strong>历史会话</strong></td><td>你平时的会话</td><td>独立，一开始是空的</td></tr>
+  <tr><td><strong>适合</strong></td><td>就想用增强功能，不动任何配置</td><td>要用中转/第三方 API</td></tr>
+</table>
+<div class="note"><strong>为什么分开</strong>
+官方 Codex App、你 shell 里的 <code>codex</code>、以及别的编排工具（比如 Orca）读的都是 <code>~/.codex</code>。
+AetherCodex 不去和它们抢这个文件，而是用 Codex 自带的 <code>CODEX_HOME</code> 机制另开一份。
+这样中转配置怎么折腾都不会弄坏你原本能用的环境。</div>
+<div class="warn"><strong>选了官方配置时</strong>
+「供应商配置」页的应用/清除按钮会拒绝执行并提示切到中转配置。这是有意的——
+那一刻你要改的是你自己的 <code>~/.codex</code>。</div>
+<p>命令行同样可选：</p>
+<pre><code>aethercodex --profile official   # 读 ~/.codex
+aethercodex --profile proxy      # 读 ~/.aethercodex/codex-home</code></pre>
+<p>不带参数时沿用上次的选择。</p>
+</section>
+
+<section id="relay">
+<h2>供应商与中转注入</h2>
+<p>这是 AetherCodex 最复杂也最有用的部分。它通过改写 <code>~/.codex/config.toml</code>，让 Codex 把请求发到你指定的 API 端点。</p>
+
+<h3>三种模式</h3>
+<table>
+  <tr><th>模式</th><th>含义</th><th>适用</th></tr>
+  <tr><td><strong>官方</strong> Official</td><td>完全用 ChatGPT 官方登录态，不做任何改写。</td><td>只用官方订阅。</td></tr>
+  <tr><td><strong>混合</strong> MixedApi<br>（默认）</td><td>保留官方登录态，同时可以切到自定义 API。切换时不会把 <code>auth.json</code> 弄丢。</td><td>既有订阅又有中转 Key，想随时切。</td></tr>
+  <tr><td><strong>纯 API</strong> PureApi</td><td>完全走自定义 API，不依赖 ChatGPT 登录。</td><td>只有中转 Key，没有官方订阅。</td></tr>
+</table>
+
+<h3>两种协议</h3>
+<ul>
+  <li><strong>Responses</strong>（默认）—— OpenAI Responses API。原生 Codex 用的就是这个。</li>
+  <li><strong>Chat Completions</strong> —— 经典 <code>/v1/chat/completions</code>。大多数第三方中转站支持这个。</li>
+</ul>
+<p>选错协议的典型表现是能连通但发消息报错。连接测试失败时，AetherCodex 会自动重试带 <code>/v1</code> 前缀的地址。</p>
+
+<h3>配置一个供应商</h3>
+<ol class="steps">
+  <li>「供应商配置」→ 新增。可以用<strong>预设选择器</strong>一键填好常见中转站的 Base URL、协议和模型列表。</li>
+  <li>填 API Key。</li>
+  <li>点<strong>测试连接</strong>。通过后可以<strong>拉取模型列表</strong>。</li>
+  <li>点<strong>应用</strong>写入 Codex 配置。重启 Codex 生效。</li>
+</ol>
+<div class="note"><strong>供应商同步</strong>
+开启后，切换供应商时会同步本地会话的 metadata，切过去之后旧会话仍然看得见，不会「消失」。</div>
+<div class="warn"><strong>中转注入模式下</strong>
+插件入口解锁和强制安装就不需要了，界面会提示「中转注入模式下无需开启」。会话删除、导出、移动、Timeline 和用户脚本仍然可用。</div>
+</section>
+
+<section id="enhance">
+<h2>页面增强</h2>
+<p>「页面增强」页的每个开关对应注入脚本里的一个能力。总开关关掉则完全不注入。</p>
+<h3>插件与模型相关</h3>
+<table>
+  <tr><th>开关</th><th>作用</th></tr>
+  <tr><td>插件市场解锁</td><td>API Key 模式下扩展插件市场请求，尽量显示完整插件列表。官方/混合模式通常不需要。</td></tr>
+  <tr><td>强制解锁入口</td><td>强制显示并启用插件入口。API Key 登录时官方会禁用它。</td></tr>
+  <tr><td>特殊插件强制安装</td><td>解除 App unavailable 导致的前端安装禁用。</td></tr>
+  <tr><td>模型白名单解锁</td><td>从 <code>/v1/models</code> 拉取模型补进列表，让中转站的模型能选。</td></tr>
+  <tr><td>Fast 按钮</td><td>显示服务档位切换。Fast 只对 gpt-5.4 / gpt-5.5 生效，其他模型按 Standard 发送。</td></tr>
+</table>
+<h3>会话与阅读体验</h3>
+<table>
+  <tr><th>开关</th><th>作用</th></tr>
+  <tr><td>会话删除</td><td>会话列表悬停出现删除按钮，支持撤销。原生只有归档。</td></tr>
+  <tr><td>Markdown 导出</td><td>导出带时间戳的 Markdown。</td></tr>
+  <tr><td>会话项目移动</td><td>把会话移到普通对话或其他本地项目。</td></tr>
+  <tr><td>对话 Timeline</td><td>右侧显示提问时间线，可摘要和跳转。</td></tr>
+  <tr><td>对话居中宽度</td><td>限制主对话最大宽度，大屏阅读友好。</td></tr>
+  <tr><td>切换对话保留位置</td><td>切回某个 thread 时恢复上次浏览位置。</td></tr>
+  <tr><td>原生菜单栏位置</td><td>把菜单插进 Codex 顶部原生菜单栏。默认关闭，因为可能和页面重渲染冲突。</td></tr>
+</table>
+<h3>开发相关</h3>
+<table>
+  <tr><th>开关</th><th>作用</th></tr>
+  <tr><td>Zed Remote open</td><td>远程 SSH 文件引用直接用 Zed Remote Development 打开。</td></tr>
+  <tr><td>Zed 项目记录</td><td>维护 AetherCodex 自己的远程项目最近列表。</td></tr>
+  <tr><td>Upstream worktree</td><td>从 <code>upstream/&lt;分支&gt;</code> 创建 Git worktree，创建前自动 fetch，避免从陈旧本地 HEAD 派生导致冲突。</td></tr>
+</table>
+</section>
+
+<section id="scripts">
+<h2>脚本市场</h2>
+<p>用户脚本是注入到 Codex 页面的自定义 JS，在增强脚本之后执行。</p>
+<ul>
+  <li><strong>市场脚本</strong>：从远端静态清单加载，可一键安装、更新。</li>
+  <li><strong>本地脚本</strong>：内置脚本和你手动放进去的脚本，可单独启停或删除。</li>
+</ul>
+<p>脚本目录见「数据位置」。禁用某个脚本后，需要重载页面或重启 AetherCodex 才能完全移除已执行的效果。</p>
+</section>
+
+<section id="sessions">
+<h2>会话管理</h2>
+<p>直接读 Codex 的本地数据库 <code>~/.codex/state_5.sqlite</code>。</p>
+<div class="warn"><strong>删除是真删</strong>
+删除会话会同时删掉数据库记录和对应的 rollout 文件，不是归档。页面内删除支持撤销，管理工具里的删除不支持。</div>
+<p>Markdown 导出会把会话导成带时间戳的文件，文件名里的非法字符会自动替换。</p>
+</section>
+
+<section id="zed">
+<h2>Zed 远程项目</h2>
+<p>当 Codex 会话工作在 SSH 远程目录时，AetherCodex 能识别出远程主机和路径，把文件直接在 Zed Remote Development 里打开。</p>
+<p>需要本机装了 Zed，并且 <code>zed</code> CLI 在 PATH 上（macOS 也可以直接识别 <code>/Applications/Zed.app</code>）。「Zed 远程项目」页会显示识别到的项目列表，可以手动清理记录。</p>
+</section>
+
+<section id="update">
+<h2>更新机制</h2>
+<p>「关于」页可以检查并启动更新。静默启动器发现新版本时会拉起管理工具并进入更新提示。</p>
+<p>更新只会挑选和当前系统、CPU 架构匹配的安装包：</p>
+<ul>
+  <li>Windows → <code>-setup.exe</code></li>
+  <li>macOS → 对应架构的 <code>.dmg</code></li>
+  <li>Linux → 优先同架构 <code>.deb</code>，没有则回退同架构 <code>.tar.gz</code>，交给 <code>xdg-open</code> 用系统包管理器安装</li>
+</ul>
+</section>
+
+<section id="paths">
+<h2>数据位置与端口</h2>
+<h3>文件</h3>
+<table>
+  <tr><th>内容</th><th>位置</th></tr>
+  <tr><td>Codex 配置</td><td><code>~/.codex/config.toml</code></td></tr>
+  <tr><td>Codex 登录状态</td><td><code>~/.codex/auth.json</code></td></tr>
+  <tr><td>Codex 会话数据库</td><td><code>~/.codex/state_5.sqlite</code></td></tr>
+  <tr><td>AetherCodex 设置与日志</td><td><code>~/.aethercodex/</code></td></tr>
+  <tr><td>用户脚本配置</td><td>Windows <code>%APPDATA%\AetherCodex</code><br>其他 <code>$XDG_CONFIG_HOME/AetherCodex</code></td></tr>
+  <tr><td>供应商同步备份</td><td><code>~/.codex/backups_state/provider-sync</code></td></tr>
+</table>
+<div class="note"><strong>从 Codex++ 升级过来</strong>
+旧的 <code>~/.codex-session-delete</code> 会在第一次读取时自动迁移到 <code>~/.aethercodex</code>，设置、用户脚本和日志都会带过去。如果新目录已存在，迁移会跳过，不会覆盖。</div>
+<h3>端口（都只绑本机回环）</h3>
+<table>
+  <tr><th>端口</th><th>用途</th></tr>
+  <tr><td>9229</td><td>Codex 的 CDP 调试端口（可在启动参数改）</td></tr>
+  <tr><td>57321</td><td>helper / 协议代理端口</td></tr>
+  <tr><td>57320</td><td>启动器单实例锁</td></tr>
+  <tr><td>57319</td><td>管理工具单实例锁</td></tr>
+</table>
+</section>
+
+<section id="trouble">
+<h2>故障排查</h2>
+
+<h3>AetherCodex 菜单没出现</h3>
+<ul>
+  <li>确认是从 <code>AetherCodex</code> 入口启动的，不是原版 Codex。</li>
+  <li>「页面增强」总开关是否开着。</li>
+  <li>「关于」页看日志里的 <code>renderer.script_loaded</code>、<code>bridge.request</code>、<code>bridge.response</code>。</li>
+</ul>
+
+<h3>找不到 Codex App</h3>
+<p>各平台的查找位置：</p>
+<ul>
+  <li><strong>Windows</strong>：MS Store 包目录，其次 <code>%LOCALAPPDATA%\OpenAI\Codex</code> 等标准安装位置。</li>
+  <li><strong>macOS</strong>：<code>/Applications</code> 和 <code>~/Applications</code> 下的 <code>Codex.app</code>。</li>
+  <li><strong>Linux</strong>：<code>/opt</code>、<code>/usr/lib</code>、<code>/usr/share</code>、<code>~/.local/share</code>、<code>~/Applications</code> 下真正含 Codex 可执行文件（<code>Codex</code>/<code>codex</code>/<code>codex-app</code>）的目录，以及名字含 codex 的 <code>.AppImage</code>。</li>
+</ul>
+<p>只有确实含可执行文件的目录才会被采纳，所以 PATH 上的 <code>codex</code> CLI 不会被误判成桌面版。自动识别失败时在「设置」里手填路径，Linux 可以直接填 <code>.AppImage</code> 文件路径。</p>
+
+<h3>插件里显示后端连不上</h3>
+<p>先测本机接口：</p>
+<pre><code>curl -X POST http://127.0.0.1:57321/backend/status \
+  -H "Content-Type: application/json" -d "{}"</code></pre>
+<p>接口正常但插件仍超时，通常是页面里的 CDP bridge 或脚本缓存问题。重启 AetherCodex，或在日志里查上面那几个事件。</p>
+
+<h3>Linux：管理工具窗口空白</h3>
+<p>WebKitGTK 渲染问题，先关硬件加速：</p>
+<pre><code>WEBKIT_DISABLE_DMABUF_RENDERER=1 aethercodex-manager</code></pre>
+
+<h3>Linux：Codex 本体起不来</h3>
+<p>Ubuntu 24.04 起内核默认开 <code>kernel.apparmor_restrict_unprivileged_userns=1</code>，会挡住依赖 bubblewrap 沙箱的进程创建 user namespace。管理工具自己不用这个沙箱，但被拉起的 Codex（Electron/Chromium）可能中招：</p>
+<pre><code>sudo apt install apparmor-profiles
+sudo install -m 0644 /usr/share/apparmor/extra-profiles/bwrap-userns-restrict \
+  /etc/apparmor.d/bwrap-userns-restrict
+sudo apparmor_parser -r /etc/apparmor.d/bwrap-userns-restrict</code></pre>
+
+<h3>收集诊断信息</h3>
+<p>「关于」页有「复制诊断」，会打包版本、路径、入口状态和最近日志，反馈问题时附上它。</p>
+</section>
+
+<section id="uninstall">
+<h2>卸载</h2>
+<ul>
+  <li><strong>Windows</strong>：开始菜单的「卸载 AetherCodex」，或设置 → 应用。</li>
+  <li><strong>macOS</strong>：把两个 app 拖到废纸篓。</li>
+  <li><strong>Linux</strong>：<code>sudo apt remove aethercodex</code>，或 tarball 目录里的 <code>./uninstall.sh</code>。</li>
+</ul>
+<p>「安装维护」页的卸载入口可以选择是否一并删除 <code>~/.aethercodex</code> 里的设置和日志。Codex 自己的数据（<code>~/.codex</code>）永远不会被删。</p>
+</section>
+
+<footer>
+AetherCodex 2.0.0 · Archai · 基于上游 <a href="https://github.com/BigPizzaV3/CodexPlusPlus" target="_blank" rel="noreferrer">Codex++</a>（MIT）
+</footer>
+</main>
+</div>
+
+<script>
+  // The host app passes ?theme=dark|light so the manual matches the shell.
+  const theme = new URLSearchParams(location.search).get("theme");
+  if (theme === "dark" || theme === "light") {
+    document.documentElement.dataset.theme = theme;
+  }
+  // Let the shell retheme the iframe without reloading it.
+  window.addEventListener("message", (event) => {
+    const next = event.data?.theme;
+    if (next === "dark" || next === "light") document.documentElement.dataset.theme = next;
+  });
+
+  // Highlight the section currently in view.
+  const links = [...document.querySelectorAll("nav a")];
+  const byId = new Map(links.map((a) => [a.getAttribute("href").slice(1), a]));
+  const observer = new IntersectionObserver((entries) => {
+    for (const entry of entries) {
+      if (!entry.isIntersecting) continue;
+      links.forEach((a) => a.classList.remove("active"));
+      byId.get(entry.target.id)?.classList.add("active");
+    }
+  }, { rootMargin: "-10% 0px -80% 0px" });
+  document.querySelectorAll("section[id]").forEach((s) => observer.observe(s));
+</script>
+</body>
+</html>

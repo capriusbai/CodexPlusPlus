@@ -1,13 +1,13 @@
-# Contributing to CodexPlusPlus
+# Contributing to AetherCodex
 
-Thank you for your interest in contributing to CodexPlusPlus!
+Thank you for your interest in contributing to AetherCodex!
 
 ## Development Setup
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/BigPizzaV3/CodexPlusPlus.git
-   cd CodexPlusPlus
+   git clone https://github.com/BigPizzaV3/AetherCodex.git
+   cd AetherCodex
    ```
 
 2. **Install Rust toolchain**
@@ -30,10 +30,10 @@ Thank you for your interest in contributing to CodexPlusPlus!
 ## Project Structure
 
 ```
-CodexPlusPlus/
+AetherCodex/
 ├── crates/
-│   ├── codex-plus-data/    # Data handling and provider sync
-│   └── codex-plus-core/    # Core Codex++ logic
+│   ├── aethercodex-data/    # Data handling and provider sync
+│   └── aethercodex-core/    # Core AetherCodex logic
 └── README.md               # Project documentation
 ```
 

@@ -29,15 +29,15 @@ jobs:
         run: choco install nsis -y
 
       - name: Install frontend dependencies
-        working-directory: apps/codex-plus-manager
+        working-directory: apps/aethercodex-manager
         run: npm install --package-lock=false
 
       - name: TypeScript check
-        working-directory: apps/codex-plus-manager
+        working-directory: apps/aethercodex-manager
         run: npm run check
 
       - name: Build frontend
-        working-directory: apps/codex-plus-manager
+        working-directory: apps/aethercodex-manager
         run: npm run vite:build
 
       - name: Rust tests
@@ -50,8 +50,8 @@ jobs:
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force dist/windows/app | Out-Null
-          Copy-Item target/release/codex-plus-plus.exe dist/windows/app/
-          Copy-Item target/release/codex-plus-plus-manager.exe dist/windows/app/
+          Copy-Item target/release/aethercodex.exe dist/windows/app/
+          Copy-Item target/release/aethercodex-manager.exe dist/windows/app/
 
       - name: Build Windows installer
         shell: pwsh
@@ -66,20 +66,20 @@ jobs:
             $makensis = "makensis"
           }
           Push-Location scripts/installer/windows
-          & $makensis "/INPUTCHARSET" "UTF8" "/DVERSION=$version" CodexPlusPlus.nsi
+          & $makensis "/INPUTCHARSET" "UTF8" "/DVERSION=$version" AetherCodex.nsi
           Pop-Location
 
       - name: Upload Windows binaries
         uses: actions/upload-artifact@v4
         with:
-          name: codex-plus-plus-windows-binaries
+          name: aethercodex-windows-binaries
           path: dist/windows/app/*
           if-no-files-found: error
 
       - name: Upload Windows installer
         uses: actions/upload-artifact@v4
         with:
-          name: codex-plus-plus-windows-installer
+          name: aethercodex-windows-installer
           path: dist/windows/*.exe
           if-no-files-found: error
 
@@ -111,11 +111,11 @@ jobs:
           targets: ${{ matrix.target }}
 
       - name: Install frontend dependencies
-        working-directory: apps/codex-plus-manager
+        working-directory: apps/aethercodex-manager
         run: npm install --package-lock=false
 
       - name: Build frontend
-        working-directory: apps/codex-plus-manager
+        working-directory: apps/aethercodex-manager
         run: npm run vite:build
 
       - name: Build release binaries
@@ -134,7 +134,7 @@ jobs:
       - name: Verify macOS bundle structure
         run: |
           set -euo pipefail
-          for app in "dist/macos/stage/Codex++.app" "dist/macos/stage/Codex++ 管理工具.app"; do
+          for app in "dist/macos/stage/AetherCodex.app" "dist/macos/stage/AetherCodex 管理工具.app"; do
             test -f "$app/Contents/Info.plist"
             test -f "$app/Contents/PkgInfo"
             test -x "$app/Contents/MacOS/$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$app/Contents/Info.plist")"
@@ -146,6 +146,95 @@ jobs:
       - name: Upload macOS DMG
         uses: actions/upload-artifact@v4
         with:
-          name: codex-plus-plus-macos-${{ matrix.arch }}-dmg
+          name: aethercodex-macos-${{ matrix.arch }}-dmg
           path: dist/macos/*.dmg
+          if-no-files-found: error
+
+  linux-packages:
+    name: Linux packages (${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x64
+            runner: ubuntu-24.04
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      # Built on 24.04 on purpose: its glibc and WebKitGTK 4.1 soname are the
+      # oldest the artifacts have to support, and newer releases (25.10, 26.04)
+      # stay backwards compatible with them.
+      - name: Install Linux build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libwebkit2gtk-4.1-dev \
+            libgtk-3-dev \
+            librsvg2-dev \
+            desktop-file-utils \
+            librsvg2-bin \
+            icoutils \
+            icnsutils \
+            imagemagick
+
+      - name: Verify icons match the brand master
+        run: bash scripts/brand/generate-icons.sh --check
+
+      - name: Verify the user manual matches this version
+        run: python3 scripts/help/check-help-version.py
+
+      - name: Install frontend dependencies
+        working-directory: apps/aethercodex-manager
+        run: npm install --package-lock=false
+
+      - name: Build frontend
+        working-directory: apps/aethercodex-manager
+        run: npm run vite:build
+
+      - name: Rust tests
+        run: cargo test --workspace
+
+      - name: Build release binaries
+        run: cargo build --release
+
+      - name: Build Linux packages
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          VERSION="${VERSION#V}"
+          VERSION="${VERSION//\//-}"
+          if [ -z "$VERSION" ] || [ "$VERSION" = "main" ]; then
+            VERSION="0.0.0-${GITHUB_RUN_NUMBER}"
+          fi
+          bash scripts/installer/linux/package-linux.sh "$VERSION" "${{ matrix.arch }}"
+
+      - name: Verify the package installs and the entry points register
+        run: |
+          set -euo pipefail
+          sudo apt-get install -y ./dist/linux/*.deb
+          dpkg -L aethercodex
+          aethercodex-manager --install-entrypoints
+          test -f "$HOME/.local/share/applications/aethercodex.desktop"
+          test -f "$HOME/.local/share/applications/aethercodex-manager.desktop"
+          aethercodex-manager --uninstall-entrypoints
+          sudo apt-get remove -y aethercodex
+
+      - name: Upload Linux packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: aethercodex-linux-${{ matrix.arch }}-packages
+          path: |
+            dist/linux/*.deb
+            dist/linux/*.tar.gz
           if-no-files-found: error

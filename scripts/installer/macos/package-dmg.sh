@@ -7,16 +7,16 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 DIST="$ROOT/dist/macos"
 STAGE="$DIST/stage"
 BINARY_DIR="${BINARY_DIR:-$ROOT/target/release}"
-DMG="$DIST/CodexPlusPlus-${VERSION}-macos-${ARCH}.dmg"
-ICON_SOURCE="$ROOT/apps/codex-plus-manager/src-tauri/icons/icon.png"
-ICON_NAME="codex-plus-plus.icns"
+DMG="$DIST/AetherCodex-${VERSION}-macos-${ARCH}.dmg"
+ICON_SOURCE="$ROOT/apps/aethercodex-manager/src-tauri/icons/icon.png"
+ICON_NAME="aethercodex.icns"
 ICON_ICNS="$DIST/$ICON_NAME"
 
 rm -rf "$DIST"
 mkdir -p "$STAGE"
 
 prepare_icon() {
-  local iconset="$DIST/codex-plus-plus.iconset"
+  local iconset="$DIST/aethercodex.iconset"
   rm -rf "$iconset"
   mkdir -p "$iconset"
 
@@ -118,15 +118,15 @@ verify_app() {
 }
 
 prepare_icon
-create_app "Codex++" "CodexPlusPlus" "$BINARY_DIR/codex-plus-plus" "com.bigpizzav3.codexplusplus" "true"
-create_app "Codex++ 管理工具" "CodexPlusPlusManager" "$BINARY_DIR/codex-plus-plus-manager" "com.bigpizzav3.codexplusplus.manager" "false"
+create_app "AetherCodex" "AetherCodex" "$BINARY_DIR/aethercodex" "com.archai.aethercodex" "true"
+create_app "AetherCodex 管理工具" "AetherCodexManager" "$BINARY_DIR/aethercodex-manager" "com.archai.aethercodex.manager" "false"
 ln -s /Applications "$STAGE/Applications"
 
-sign_app "$STAGE/Codex++.app"
-sign_app "$STAGE/Codex++ 管理工具.app"
+sign_app "$STAGE/AetherCodex.app"
+sign_app "$STAGE/AetherCodex 管理工具.app"
 
-verify_app "$STAGE/Codex++.app"
-verify_app "$STAGE/Codex++ 管理工具.app"
+verify_app "$STAGE/AetherCodex.app"
+verify_app "$STAGE/AetherCodex 管理工具.app"
 
-hdiutil create -volname "Codex++" -srcfolder "$STAGE" -ov -format UDZO "$DMG"
+hdiutil create -volname "AetherCodex" -srcfolder "$STAGE" -ov -format UDZO "$DMG"
 echo "$DMG"
