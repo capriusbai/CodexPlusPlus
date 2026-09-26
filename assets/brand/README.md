@@ -17,24 +17,31 @@ The generator writes the Windows `.ico`, the macOS `.icns`, the Tauri app icon
 and the Linux hicolor PNG. `--check` runs in CI, so an icon can never silently
 fall out of sync with the master.
 
-## Status of the current master
+## Provenance of the current master
 
-> **The mark in this directory is a WORKING PLACEHOLDER, not the approved
-> Archai master.**
+The mark is the Aether logo supplied by the project owner. The source artwork
+was a 248x249 bilevel PNG (black on transparent); it was vector-traced with
+`potrace` so it scales cleanly, then placed on an Engineering Graphite ground
+at 83% of the tile. Only the ground and the mark colour were chosen here — the
+geometry is the supplied logo, unaltered.
 
-The Archai brand asset registry (`ARCHAI-CIVI-001`) lists the approved lockups
-at `docs/brand/archai/datasheet/assets/archai_logo_{dark,light}_text.png` inside
-the AetherWorks workspace, and lists *"approved Archai vector master"* under
-`pending_assets`. Neither was reachable when this placeholder was drawn, so it
-was constructed from the published colour and geometry tokens alone:
+```
+aethercodex-mark.svg  sha256 251388ea18ece6f3fd12c1f99a3eba2bd9bf1f595250c420f755a98d115a1ca7
+```
 
-- square geometry, no gradient, no shadow;
-- Archai Orange `#ED9527` as the brand anchor;
-- Aether Blue `#2F6FED` as the connection/interface mark;
-- Engineering Graphite `#0B0D10` ground, Hairline `#DDE3EC` inset rule.
+Notes and limits:
 
-It is not approved for print, packaging, regulatory artwork or any external
-release. Swap in the approved master before any of those.
+- The mark holds together down to 32px. At 24px and 16px the eye and the wave
+  begin to merge, which is inherent to line art at that size; those slots are
+  only used for the Windows small icon and the favicon. A simplified 16px
+  variant would be the fix if that ever matters.
+- The light-on-graphite treatment is set in two places in the SVG: the `rect`
+  fill (`#0B0D10`) and the mark group's `fill` (`#F7F9FC`). Swap them for a
+  graphite-on-light tile.
+- This is a working product treatment, not an approved print or packaging
+  master. The Archai registry still lists the approved vector master as
+  pending, so CMYK, Pantone, clear-space and minimum-size rules are not
+  settled here. Confirm those before print, packaging or regulatory artwork.
 
 ## Colour semantics
 

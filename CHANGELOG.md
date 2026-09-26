@@ -16,7 +16,8 @@
   ink 变体，避免低对比度文字。
 - 新增 `assets/brand/` 单一母版与 `scripts/brand/generate-icons.sh`，一条命令生成
   Windows `.ico`、macOS `.icns`、Linux PNG 和应用图标；CI 用 `--check` 防止图标漂移。
-  当前母版为占位标记，非 Archai 正式母版。
+- 采用项目方提供的 Aether Logo：原始位图经 `potrace` 矢量化后置于 Engineering Graphite
+  底上，界面、安装包和三端图标共用同一母版。
 
 ### 升级兼容
 

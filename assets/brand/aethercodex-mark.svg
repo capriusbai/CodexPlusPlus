@@ -1,13 +1,35 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="AetherCodex">
   <title>AetherCodex</title>
-  <desc>WORKING PLACEHOLDER. Geometry and colour follow ARCHAI-CIVI-001 (square
-  geometry, Archai Orange as brand anchor, Aether Blue as connection). This is
-  not the approved Archai vector master; replace this file and rerun
-  scripts/brand/generate-icons.sh.</desc>
+  <desc>The Aether mark on an Engineering Graphite ground, per ARCHAI-CIVI-001.
+  Geometry is the supplied Aether logo, vector-traced from the source artwork;
+  only the ground and the mark colour are set here. Square ground, no gradient,
+  no shadow.</desc>
   <rect width="256" height="256" fill="#0B0D10"/>
-  <rect x="8" y="8" width="240" height="240" fill="none" stroke="#DDE3EC" stroke-opacity="0.18" stroke-width="2"/>
-  <!-- Ascending strokes: the Aether architecture mark. -->
-  <path d="M128 44 L196 212 L160 212 L128 132 L96 212 L60 212 Z" fill="#ED9527"/>
-  <!-- Crossbar: connection / interface. -->
-  <rect x="92" y="158" width="72" height="18" fill="#2F6FED"/>
+  <g transform="translate(22.426,22.000) scale(0.851406)">
+    <g transform="translate(0.000000,249.000000) scale(0.100000,-0.100000)" fill="#F7F9FC" stroke="none">
+      <path d="M1034 2475 c-520 -92 -915 -483 -1015 -1006 -18 -96 -16 -337 4 -441
+48 -244 152 -447 319 -624 221 -232 502 -369 812 -393 216 -18 411 20 611 118
+152 74 254 150 375 278 161 170 262 364 311 593 29 136 31 373 5 495 -55 249
+-152 436 -320 614 -161 170 -366 288 -601 347 -127 32 -374 41 -501 19z m401
+-170 c394 -84 696 -347 827 -722 23 -65 32 -112 36 -180 4 -83 2 -97 -22 -148
+-43 -95 -180 -212 -324 -277 -219 -99 -475 -91 -694 21 -51 27 -163 84 -248
+128 -201 103 -294 134 -427 141 -117 6 -221 -8 -325 -44 -40 -13 -75 -24 -80
+-24 -13 0 -9 151 7 243 73 421 410 766 835 857 108 23 316 26 415 5z m-755
+-1220 c96 -20 199 -62 328 -134 161 -90 287 -147 387 -177 80 -25 107 -28 245
+-28 119 -1 170 3 220 17 100 27 236 97 333 171 48 36 87 62 87 57 0 -5 -9 -37
+-19 -70 -42 -136 -132 -224 -286 -280 -282 -102 -576 -73 -875 86 -316 169
+-395 201 -516 210 -79 6 -178 -8 -272 -38 -35 -12 -67 -17 -72 -13 -9 10 -40
+110 -40 130 0 13 87 47 175 68 80 19 217 19 305 1z m-10 -332 c54 -14 117 -46
+315 -157 189 -106 372 -164 550 -173 95 -5 281 6 380 23 29 5 28 3 -23 -44
+-190 -176 -516 -265 -800 -218 -315 53 -569 215 -734 470 -21 33 -38 63 -38
+67 0 12 82 40 141 49 65 9 135 4 209 -17z"/>
+      <path d="M1160 1953 c-154 -26 -301 -128 -366 -255 -54 -106 -70 -283 -29
+-328 18 -20 162 -77 171 -67 3 3 1 22 -5 44 -6 21 -11 74 -11 118 0 67 5 90
+29 140 76 161 273 232 429 155 115 -58 187 -171 187 -295 -1 -59 -6 -80 -34
+-134 -43 -84 -114 -154 -180 -177 -28 -10 -51 -22 -51 -26 0 -15 86 -30 134
+-23 253 33 385 347 250 595 -34 62 -141 165 -210 202 -90 49 -211 68 -314 51z"/>
+      <path d="M1170 1568 c-91 -62 -69 -204 35 -224 86 -16 155 34 155 112 0 80
+-34 120 -112 130 -35 5 -50 1 -78 -18z"/>
+    </g>
+  </g>
 </svg>

@@ -114,8 +114,9 @@ bash scripts/brand/generate-icons.sh          # regenerate Windows .ico / macOS 
 bash scripts/brand/generate-icons.sh --check  # verify the icons match the master (CI runs this)
 ```
 
-The mark currently in the repository is a **working placeholder**, not the
-approved Archai master. See [`assets/brand/README.md`](assets/brand/README.md).
+The master is the Aether logo supplied by the project owner, vector-traced
+with `potrace` and placed on the graphite ground. Provenance, hash and usage
+limits are in [`assets/brand/README.md`](assets/brand/README.md).
 
 ## Highlights
 

@@ -115,8 +115,8 @@ bash scripts/brand/generate-icons.sh          # 重新生成 Windows .ico / macO
 bash scripts/brand/generate-icons.sh --check  # 校验图标与母版是否一致（CI 会跑）
 ```
 
-当前仓库内的是**占位标记**，不是 Archai 正式母版，细节见
-[`assets/brand/README.md`](assets/brand/README.md)。
+母版是项目方提供的 Aether Logo，已用 `potrace` 矢量化后置于石墨底上；
+来源、哈希和使用边界见 [`assets/brand/README.md`](assets/brand/README.md)。
 
 ## 主要功能
 
