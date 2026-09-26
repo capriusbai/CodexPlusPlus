@@ -60,6 +60,8 @@ pub struct SettingsPayload {
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LocalSessionsPayload {
+    /// "official" or "proxy" — which Codex configuration these rows came from.
+    pub home_profile: String,
     pub db_path: String,
     pub sessions: Vec<aethercodex_data::LocalSession>,
 }
@@ -95,6 +97,8 @@ pub struct CcsProvidersPayload {
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct RelayPayload {
+    /// "official" or "proxy" — which Codex configuration this describes.
+    pub home_profile: String,
     pub authenticated: bool,
     pub auth_source: String,
     pub account_label: Option<String>,
@@ -525,6 +529,7 @@ pub fn list_local_sessions() -> CommandResult<LocalSessionsPayload> {
         Ok(sessions) => ok(
             &format!("已读取 {} 个本地会话。", sessions.len()),
             LocalSessionsPayload {
+                home_profile: current_home_profile().as_str().to_string(),
                 db_path: db_path.to_string_lossy().to_string(),
                 sessions,
             },
@@ -532,6 +537,7 @@ pub fn list_local_sessions() -> CommandResult<LocalSessionsPayload> {
         Err(error) => failed(
             &format!("读取本地会话失败：{error}"),
             LocalSessionsPayload {
+                home_profile: current_home_profile().as_str().to_string(),
                 db_path: db_path.to_string_lossy().to_string(),
                 sessions: Vec::new(),
             },
@@ -2124,6 +2130,7 @@ fn relay_payload(
     backup_path: Option<String>,
 ) -> RelayPayload {
     RelayPayload {
+        home_profile: current_home_profile().as_str().to_string(),
         authenticated: status.authenticated,
         auth_source: status.auth_source,
         account_label: status.account_label,
@@ -2358,17 +2365,19 @@ fn default_user_script_manager() -> UserScriptManager {
 /// Reads are allowed against either home; writes go through
 /// [`selected_codex_home_for_writes`], which refuses the official one.
 /// The profile a launch should use: the request's choice, else the saved one.
+/// The profile the manager is currently reading from.
+fn current_home_profile() -> aethercodex_core::codex_home::CodexHomeProfile {
+    SettingsStore::default()
+        .load()
+        .map(|settings| settings.codex_home_profile)
+        .unwrap_or_default()
+}
+
 fn resolve_launch_profile(
     request: &LaunchRequest,
 ) -> aethercodex_core::codex_home::CodexHomeProfile {
-    aethercodex_core::codex_home::CodexHomeProfile::parse(&request.home_profile).unwrap_or_else(
-        || {
-            SettingsStore::default()
-                .load()
-                .map(|settings| settings.codex_home_profile)
-                .unwrap_or_default()
-        },
-    )
+    aethercodex_core::codex_home::CodexHomeProfile::parse(&request.home_profile)
+        .unwrap_or_else(current_home_profile)
 }
 
 /// Remember the launched profile so the manager's reads follow the same home.
@@ -2383,11 +2392,7 @@ fn remember_launch_profile(profile: aethercodex_core::codex_home::CodexHomeProfi
 }
 
 fn selected_codex_home() -> PathBuf {
-    let profile = SettingsStore::default()
-        .load()
-        .map(|settings| settings.codex_home_profile)
-        .unwrap_or_default();
-    aethercodex_core::relay_config::codex_home_dir(profile)
+    aethercodex_core::relay_config::codex_home_dir(current_home_profile())
 }
 
 /// The Codex home relay injection may write.
@@ -2395,11 +2400,7 @@ fn selected_codex_home() -> PathBuf {
 /// Errors when the selected profile is the official `~/.codex`, which belongs
 /// to the user and to the Codex App they launch themselves.
 fn selected_codex_home_for_writes() -> anyhow::Result<PathBuf> {
-    let profile = SettingsStore::default()
-        .load()
-        .map(|settings| settings.codex_home_profile)
-        .unwrap_or_default();
-    aethercodex_core::relay_config::codex_home_dir_for_writes(profile)
+    aethercodex_core::relay_config::codex_home_dir_for_writes(current_home_profile())
 }
 
 fn user_scripts_config_dir() -> PathBuf {

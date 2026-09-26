@@ -222,6 +222,7 @@ type SettingsResult = CommandResult<{
 }>;
 
 type RelayResult = CommandResult<{
+  homeProfile: string;
   authenticated: boolean;
   authSource: string;
   accountLabel: string | null;
@@ -250,6 +251,7 @@ type LocalSession = {
 };
 
 type LocalSessionsResult = CommandResult<{
+  homeProfile: string;
   dbPath: string;
   sessions: LocalSession[];
 }>;
@@ -1627,6 +1629,7 @@ export function App() {
           {route === "relay" ? (
             <RelayScreen
               settings={settings}
+              relay={relay}
               relayFiles={relayFiles}
               form={settingsForm}
               onFormChange={setSettingsForm}
@@ -1831,12 +1834,14 @@ function OverviewScreen({
 
 function RelayScreen({
   settings: _settings,
+  relay,
   relayFiles,
   form,
   onFormChange,
   actions,
 }: {
   settings: SettingsResult | null;
+  relay: RelayResult | null;
   relayFiles: RelayFilesResult | null;
   form: BackendSettings;
   onFormChange: (value: BackendSettings) => void;
@@ -1900,7 +1905,11 @@ function RelayScreen({
   return (
     <>
       <Panel>
-        <CardHead title="供应商列表" detail={`${normalized.relayProfiles.length} 个供应商配置；可拖动排序，点编辑进入详情`} />
+        <CardHead
+          title="供应商列表"
+          detail={`${normalized.relayProfiles.length} 个供应商配置；可拖动排序，点编辑进入详情`}
+          aside={<HomeProfileBadge profile={relay?.homeProfile} />}
+        />
         <CardContent>
           <label className="switch-row relay-master-switch">
             <input
@@ -2263,7 +2272,11 @@ function SessionsScreen({
   return (
     <>
       <Panel>
-        <CardHead title="会话管理" detail="读取 Codex 本地 state_5.sqlite，会删除数据库记录和对应 rollout 文件" />
+        <CardHead
+          title="会话管理"
+          detail="读取 Codex 本地 state_5.sqlite，会删除数据库记录和对应 rollout 文件"
+          aside={<HomeProfileBadge profile={sessions?.homeProfile} />}
+        />
         <CardContent>
           <div className="metric-list">
             <Metric label="会话总数" value={`${items.length} 个`} />
@@ -2271,6 +2284,13 @@ function SessionsScreen({
             <Metric label="已归档" value={`${archivedCount} 个`} />
             <Metric label="数据库" value={sessions?.dbPath ?? "~/.codex/state_5.sqlite"} />
           </div>
+          {sessions && !items.length ? (
+            <div className="empty">
+              {sessions.homeProfile === "proxy"
+                ? "中转配置下还没有会话。这是独立于官方配置的另一套会话，官方那边的记录没有丢失——切回「启动（官方配置）」即可看到。"
+                : "官方配置下没有读到会话。"}
+            </div>
+          ) : null}
           <div className="form-row">
             <Field label="同步目标">
               <select
@@ -3685,11 +3705,20 @@ function Panel({ children, fill = false, className = "" }: { children: React.Rea
   );
 }
 
-function CardHead({ title, detail }: { title: string; detail: string }) {
+function CardHead({
+  title,
+  detail,
+  aside,
+}: {
+  title: string;
+  detail: string;
+  aside?: React.ReactNode;
+}) {
   return (
     <CardHeader className="panel-head">
       <CardTitle>{title}</CardTitle>
       <CardDescription>{detail}</CardDescription>
+      {aside ? <div className="panel-head-aside">{aside}</div> : null}
     </CardHeader>
   );
 }
@@ -3787,6 +3816,24 @@ function HelpScreen({ theme }: { theme: string }) {
         title="AetherCodex 使用说明"
       />
     </Panel>
+  );
+}
+
+/**
+ * Says which Codex configuration the page is showing.
+ *
+ * Without this, switching to the proxy profile looks like data loss: the
+ * session list is legitimately empty because it is a different Codex home.
+ */
+function HomeProfileBadge({ profile }: { profile?: string }) {
+  const isProxy = profile === "proxy";
+  return (
+    <span className={`home-profile-badge ${isProxy ? "proxy" : "official"}`}>
+      {isProxy ? "中转配置" : "官方配置"}
+      <span className="home-profile-path">
+        {isProxy ? "~/.aethercodex/codex-home" : "~/.codex"}
+      </span>
+    </span>
   );
 }
 

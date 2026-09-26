@@ -2358,3 +2358,39 @@ body {
   border: 0;
   background: hsl(var(--background));
 }
+
+/* Which Codex configuration a page is showing. Square, hairline, and colour
+   only to separate the two — never as decoration. */
+.panel-head-aside {
+  margin-left: auto;
+  align-self: center;
+}
+
+.home-profile-badge {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 4px 10px;
+  border: 1px solid hsl(var(--border));
+  border-radius: 2px;
+  font-size: 12px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.home-profile-badge.official {
+  border-left: 2px solid hsl(var(--muted-foreground));
+  color: hsl(var(--foreground));
+}
+
+.home-profile-badge.proxy {
+  border-left: 2px solid hsl(var(--brand-anchor));
+  color: hsl(var(--brand-anchor-ink));
+}
+
+.home-profile-path {
+  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  font-weight: 400;
+  color: hsl(var(--muted-foreground));
+}
