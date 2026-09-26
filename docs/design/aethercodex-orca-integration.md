@@ -290,7 +290,7 @@ Codex App 页面里注入一块 Orca 面板，显示当前 run 的 agent 状态�
 
 | 阶段 | 内容 | 前置 | 规模 |
 |---|---|---|---|
-| P0 | Orca 探测（有没有装、版本、CLI 路径）+ `OrcaClient`（子进程 + JSON 解析 + 超时 + 降级）。**必须认 `orca-ide` 而非 `orca`，并拒绝自述为屏幕阅读器的二进制**；基线版本按实机 v1.4.210 | — | 小 |
+| ~~P0~~ | ~~Orca 探测 + `OrcaClient`~~ → **已实现**：`crates/aethercodex-core/src/orca/`，23 个测试。见下方 §5.1 | — | 已完成 |
 | ~~P1~~ | ~~独立配置模式~~ → **已实现**：启动时选择 + CODEX_HOME 隔离 + auth 种子 + 写入保护 | — | 已完成 |
 | P2 | 4.1 配置导出（显式、带 diff 预览） | P1 | 小 |
 | P3 | 4.3 会话让路 | P0 | 小 |
@@ -303,6 +303,35 @@ Codex App 页面里注入一块 Orca 面板，显示当前 run 的 agent 状态�
 "探测外部工具 + 调用 CLI + 优雅降级"的现成范式，直接照搬，不另起炉灶。
 
 **Orca 没装时全部能力静默隐藏**，不产生任何报错或性能开销，这是硬要求。
+
+### 5.1 P0 实现说明
+
+三个文件，`probe.rs` / `command.rs` / `mod.rs`。
+
+**绝不对屏幕阅读器发命令**，用三道互相独立的拒绝：
+
+1. **Linux 上根本不考虑 `orca` 这个名字。** Orca IDE 自己的打包配置把 Linux 下的
+   `executableName` 设成 `orca-ide`，理由就是发行版的 `orca` 是屏幕阅读器。所以 Linux 上
+   一个裸 `orca` 一定不是 Orca IDE，连 `--version` 都不问。非 Linux 上没有 GNOME Orca，
+   裸 `orca` 才作为候选。
+2. **`/usr/bin/orca`、`/bin/orca` 直接拒绝**，不运行。
+3. **主版本号 ≥ 10 拒绝。** Orca IDE 是 1.x，GNOME Orca 跟着 GNOME 走 40+。这一条专门
+   接住那种 `--version` 只打印 `Orca 50.2`、没有任何可匹配措辞的情况——写第一版时正是
+   这个洞让测试变红。
+
+**只读由类型保证。** `Query` 是一个封闭枚举，只有 `account list` / `project list` /
+`orchestration run-list` 三条。写类命令进不来，除非有人往枚举里加——那就是一个 review 点，
+并且有一个测试专门断言枚举里不出现 `create`/`delete`/`dispatch` 这类词。
+
+**超时不靠 `wait`。** `orca-ide project list --json` 会把仓库图标以 base64 塞进输出，实测能
+到兆级。先 `wait` 再读会在管道缓冲区填满时死锁，于是恰好是能跑通的查询被判成超时。所以
+stdout/stderr 各起一个线程读，主线程用 `recv_timeout` 盯截止时间，超时才 kill。杀的是我们
+自己 spawn 的查询子进程，不是 Orca 应用本身——§0 第 3 条不受影响。这一条有测试：
+100 万字节的输出必须完整取回，`sleep 30` 必须在截止时间被杀掉。
+
+**版本只报不拦。** 记录实机基线 `1.4.210`，比它旧只上报 `olderThanValidated`，不阻止调用——
+插件 API 没冻结，我们并不知道哪个版本引入了哪个查询，凭空设门槛是编的。版本按分量比较而不
+按字符串，否则 `1.4.9` 会大于 `1.4.210`；解析不出来的版本一律不判定为旧。
 
 ## 6. 明确不做
 
