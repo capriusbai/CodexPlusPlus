@@ -10,6 +10,23 @@
 
 ---
 
+## 0. 硬约束：不得影响现有的官方 Codex / Claude / Orca
+
+这是本计划的最高优先级约束，高于任何功能目标。任何一条联动能力若与它冲突，砍能力。
+
+具体到可执行的规则：
+
+1. **绝不写 `~/.codex/`。** 官方 Codex App 和用户 shell 读的就是它。AetherCodex 改为
+   使用自己的 `CODEX_HOME`（见 §2.1），`~/.codex` 全程只读。
+2. **绝不写 Orca 的任何目录**——不碰 managed home、不改 Orca 安装目录、不动它的配置与数据库。
+3. **绝不改 Orca 进程状态**：不 kill、不重启、不抢它的端口。
+4. **对 Orca 只做只读探测**（`--json` 查询类命令），写类命令仅在用户显式点击时执行。
+5. **插件装进用户插件目录**，不注入 Orca 的 app bundle。
+6. **Orca 缺席或版本不匹配时全部能力静默隐藏**，不报错、不降级官方功能。
+
+验收方式：联动功能全开的情况下，把 AetherCodex 完全退出，官方 Codex / Claude / Orca
+的行为必须和联动前逐字节一致（配置文件 diff 为空）。
+
 ## 1. 两个系统到底是什么
 
 | | AetherCodex | Orca |
@@ -27,19 +44,45 @@ Orca 管"十个 agent 并行跑得清不清楚"。这决定了联动方式是**�
 
 调研中发现两处二者写/读同一份状态，这是设计必须先解决的：
 
-### 2.1 `~/.codex/config.toml`
+### 2.1 `~/.codex/config.toml` —— 改用隔离，不做仲裁
 
-- AetherCodex：中转注入直接改写它（三种模式 × 两种协议，写 `model_providers.custom`）。
-- Orca：`src/main/codex-accounts/codex-config-mirror.ts` 把**规范配置镜像进每个账号的
-  managed `CODEX_HOME`**，并有 `codex-trust-config-mutation-queue.ts` 串行化写入。
+**决策（用户）：不接受"AetherCodex 唯一作者"契约，两边的配置都要保留。**
 
-两边同时写 = 互相覆盖。但换个角度看，Orca 的 managed home 模型恰好给出了干净的分层：
+这个判断是对的，而且解法比仲裁干净：**Codex 认 `CODEX_HOME` 环境变量。**
 
-> **AetherCodex 是 config.toml 的唯一作者，Orca 是消费者。**
-> AetherCodex 写规范配置 → Orca 镜像进各 managed home → 所有 Orca 托管的 Codex agent
-> 自动继承中转设置。配一次，十个 worktree 全都走你的中转。
+Orca 源码已经在用这个机制（`src/main/codex-usage/codex-session-file-discovery.ts`）：
 
-这不是妥协，这是本次联动**最大的即得价值**。
+> `// Why: Orca-launched Codex processes receive an Orca-owned CODEX_HOME`
+
+```ts
+// src/main/ai-vault/session-scanner-agent-sources.ts
+export const DEFAULT_CODEX_HOME_DIR = join(homedir(), '.codex')
+resolveAbsoluteDirOverride(process.env.CODEX_HOME, DEFAULT_CODEX_HOME_DIR)
+```
+
+所以三方各持一份，互不写入：
+
+| 谁 | CODEX_HOME | 谁来写 |
+|---|---|---|
+| 官方 Codex App / shell | `~/.codex` | **只有用户自己** |
+| Orca 编排的 agent | Orca managed homes | 只有 Orca |
+| AetherCodex 启动的 Codex | `~/.aethercodex/codex-home` | 只有 AetherCodex |
+
+写冲突从根上消失，§0 的硬约束自动满足。
+
+#### 这要求改 AetherCodex 现有行为
+
+必须说清楚：**AetherCodex 目前确实直接改写 `~/.codex/config.toml`**，这条路要求把它改成
+写自己的 home。这不只是"接个 Orca"，是产品行为变更，代价是：
+
+- **登录态**：`auth.json` 不在新 home 里。首次启用时从 `~/.codex` **复制**一份（只读源），
+  之后两边独立。官方那边改了密码/换了账号，AetherCodex 这边不会自动跟。
+- **历史会话**：`state_5.sqlite` 同理。会话管理页需要同时读两个 home 并标明来源，
+  否则用户会觉得"我的会话不见了"。
+- **切换成本**：用户得理解"我现在开的是哪一个 Codex"。UI 上必须显著标注。
+
+**建议**：做成开关「独立配置模式」，检测到 Orca 时默认开启，并在首次开启时用一屏说明
+讲清上面三点。不检测到 Orca 时保持现有行为（直接用 `~/.codex`），因为那时没有冲突方。
 
 ### 2.2 会话与 rollout 文件
 
@@ -97,22 +140,22 @@ AetherCodex 删一个会话，Orca 的用量统计就少一条且无从知晓。
 
 不做 runtime RPC 客户端（理由不变：混合版本常态 + 未知 opcode 静默丢弃）。
 
-## 4. 四项联动能力
+## 4. 五项联动能力
 
 按"先拿价值、后担风险"排序。
 
-### 4.1 配置下行：一次中转配置，全体 agent 继承 ⭐ 优先做
+### 4.1 配置导出：把中转配置显式推给 Orca（不再是自动继承）
 
-AetherCodex 已经是 config.toml 的作者，Orca 已经会镜像。**这一项几乎不用写代码，
-只需要把契约固定下来并验证。**
+隔离之后，"配一次全体继承"不再自动发生——这是③决策的直接代价，得讲清楚。
 
-- 在 AetherCodex「供应商配置」加一行状态：检测到 Orca 存在时显示
-  "已生效于 N 个 Orca managed home"。
-- 实现：`orca account list --json` 读账号列表，比对各 managed home 的 config.toml
-  是否已含我们写入的 provider。
-- 写入时机：AetherCodex 应用配置后，调 Orca 触发一次镜像（或提示用户重启 Orca）。
+替代方案是**显式导出**，用户点了才发生：
 
-**风险低，价值最高。** 这是唯一一条"不联动也在发生、联动后才可见可控"的链路。
+- AetherCodex 供应商页加「导出到 Orca」按钮，列出 Orca 账号（`orca account list --json`）
+  让用户勾选。
+- 导出内容只有 provider 段，**不覆盖整个文件**，且导出前先展示 diff。
+- 走 Orca 自己的写入通道（CLI 命令），不直接写它的 managed home，符合 §0 第 2、4 条。
+
+这比自动继承慢一步，但符合你"怕搞坏"的顾虑：每一次跨系统写入都是你按下去的。
 
 ### 4.2 状态上行：Codex GUI 里看见 agent 集群
 
@@ -135,7 +178,7 @@ Codex App 页面里注入一块 Orca 面板，显示当前 run 的 agent 状态�
   是否属于活跃 run；是则提示"该会话正被 Orca run X 使用，仍要删除吗"。
 - 纯读操作，不改 Orca 任何状态，风险可控。
 
-### 4.4 从 Codex GUI 发起 fan-out ⭐ 最有意思
+### 4.4 从 Codex GUI 发起 fan-out ⭐ 已决策：做
 
 在 Codex App 的输入框旁注入一个按钮：**「分发到 N 个 agent」**。
 
@@ -147,16 +190,37 @@ Codex App 页面里注入一块 Orca 面板，显示当前 run 的 agent 状态�
 这是两边强项的真正相乘：AetherCodex 的 GUI 体验 + Orca 的并行编排。
 但它依赖 4.2 已经跑通，排在最后。
 
+### 4.5 注册成独立的 Orca agent 类型 ⭐ 已决策：做
+
+`AgentType = WellKnownAgentType | (string & {})` 是开放联合，插件可贡献新类型。
+注册 `aethercodex` 作为一种 agent，让"带中转注入和页面增强的 Codex GUI 会话"
+出现在 Orca 的 run 里，和 CLI agent 并排被编排。
+
+需要解决的三件事：
+
+1. **状态上报**：Orca 的 agent status 由执行宿主的 hook server 单一持有。我们作为新的
+   producer 要写进那个 store，而不是自己维护一份。按
+   `docs/reference/agent-status-store.md` 的规矩来。
+2. **生命周期**：Orca 期待 agent 能被启动、观察、停止。AetherCodex 的静默启动器天然能做
+   前两件；"停止"要映射到关闭那个 Codex 窗口，且**不能误杀用户自己开的官方 Codex**
+   —— 只能停我们自己启动的、记录了 PID 的实例。这是 §0 第 3 条的具体落地。
+3. **worktree 绑定**：Orca 的 run 以 worktree 为单位。AetherCodex 要能在指定 worktree
+   目录下启动 Codex 会话，这一条现有的 upstream worktree 能力可以复用。
+
+风险：这是**最依赖未冻结插件 API** 的一项，排在最后做，且必须能一键关掉退回普通模式。
+
 ## 5. 实施阶段
 
 | 阶段 | 内容 | 前置 | 规模 |
 |---|---|---|---|
 | P0 | Orca 探测（有没有装、版本、CLI 路径）+ `OrcaClient`（子进程 + JSON 解析 + 超时 + 降级） | — | 小 |
-| P1 | 4.1 配置下行 + 供应商页状态显示 | P0 | 小 |
-| P2 | 4.3 会话让路 | P0 | 小 |
-| P3 | Orca 插件骨架（`orca-plugin.json` + 面板 HTML + 事件订阅） | P0 | 中 |
-| P4 | 4.2 状态面板（插件事件 → bridge → 注入面板） | P3 | 中 |
-| P5 | 4.4 fan-out 按钮 | P4 | 中 |
+| P1 | **独立配置模式**（自有 CODEX_HOME + 登录态/会话 seeding + UI 标注） | P0 | **中-大，且是产品行为变更** |
+| P2 | 4.1 配置导出（显式、带 diff 预览） | P1 | 小 |
+| P3 | 4.3 会话让路 | P0 | 小 |
+| P4 | Orca 插件骨架（`orca-plugin.json` + 面板 HTML + 事件订阅） | P0 | 中 |
+| P5 | 4.2 状态面板（插件事件 → bridge → 注入面板） | P4 | 中 |
+| P6 | 4.4 fan-out 按钮 | P5 | 中 |
+| P7 | 4.5 注册为 Orca agent 类型 | P5 | 大 |
 
 `OrcaClient` 放 `crates/aethercodex-core/src/orca/`，与 `zed_remote` 同构——那已经是
 "探测外部工具 + 调用 CLI + 优雅降级"的现成范式，直接照搬，不另起炉灶。
@@ -169,17 +233,27 @@ Codex App 页面里注入一块 Orca 面板，显示当前 run 的 agent 状态�
   维护成本远超收益，而且我们刚从上游 814 commit 的同步困境里出来，不该再造一个。
 - **不实现 Orca 的 runtime RPC 客户端**（理由见 §3）。
 - **不把关键路径押在插件 API 上**——它未冻结，见 §3.2 的双轨原则。
-- **不碰 Orca 的 managed home 目录。** 只写规范 config.toml，镜像是 Orca 的职责。
+- **不碰 Orca 的 managed home 目录**，也**不写 `~/.codex/`**。AetherCodex 只写自己的
+  `CODEX_HOME`；要把配置送进 Orca 时走它自己的写入通道，且由用户显式触发（§4.1）。
 - **不做 Codex App ↔ Orca 的双向会话同步。** 两边会话模型不同（单会话 vs run×worktree），
   强行映射会产生大量边界情况。
 
-## 7. 待决策
+## 7. 决策记录
 
-1. ~~Orca 是已在用还是要新引入？~~ **已确认：本机已部署 Orca，P1 可立即验证。**
-2. **P4 的 fan-out 要不要做？** 它最能体现联动价值，但也最侵入 Codex 页面，
-   且行为依赖 Orca 的 run 模型，Orca 改版会直接影响它。
-3. **AetherCodex 作为 config.toml 唯一作者这条契约，能否接受？**
-   接受则 4.1 成立；若你希望 Orca 也能改写，需要另设仲裁机制（成本高得多）。
-4. **AetherCodex 要不要注册成一个独立的 Orca agent 类型？**
-   `AgentType` 开放联合允许这么做，意味着"带中转注入和页面增强的 Codex GUI"可以作为
-   一种可被编排的 agent 出现在 Orca 的 run 里。潜力最大，但也最依赖未冻结的插件 API。
+| # | 问题 | 决策 |
+|---|---|---|
+| ① | Orca 是否在用 | **已在用**（本机已部署） |
+| ② | P4 fan-out 做不做 | **做** |
+| ③ | config.toml 唯一作者契约 | **不接受**。两边配置都保留 → 改为 `CODEX_HOME` 隔离（§2.1） |
+| ④ | 注册成独立 Orca agent 类型 | **做**（§4.5） |
+| — | 硬约束 | **不得影响现有官方 Codex / Claude / Orca**（§0） |
+
+## 8. 待补充的信息
+
+1. **本机 Orca 的实际部署情况。** 设计基于 `stablyai/orca` @ `f0a3610` 的源码，
+   没有看过实际安装。需要确认：版本、安装方式、插件目录位置、`orca` CLI 是否在 PATH。
+2. **用户自建的 agent adaptor。** 这套东西是用户让 Orca 搭的，其接口形态会直接影响
+   §4.5 的设计——如果它已经定义了一种接入 agent 的方式，应当复用而不是另起炉灶。
+   在看到它之前，§4.5 只是基于 Orca 官方插件 API 的推断。
+3. **独立配置模式的接受度。** §2.1 列出的三点代价（登录态、历史会话、认知成本）
+   需要确认可接受，否则要重新考虑。
