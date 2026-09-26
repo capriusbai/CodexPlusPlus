@@ -192,6 +192,9 @@ jobs:
       - name: Verify icons match the brand master
         run: bash scripts/brand/generate-icons.sh --check
 
+      - name: Verify the user manual matches this version
+        run: python3 scripts/help/check-help-version.py
+
       - name: Install frontend dependencies
         working-directory: apps/aethercodex-manager
         run: npm install --package-lock=false

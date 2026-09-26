@@ -44,8 +44,9 @@ fn injection_script_prefixes_helper_url_and_version() {
     assert!(script.contains("http://127.0.0.1:57321"));
     assert!(script.contains("window.__CODEX_PLUS_VERSION__"));
     assert!(script.contains(aethercodex_core::version::VERSION));
-    assert!(script.contains("https://discord.gg/y96kX7A76v"));
-    assert!(script.contains("data-codex-plus-discord"));
+    // The upstream Discord entry was removed; make sure it stays removed.
+    assert!(!script.contains("discord.gg"));
+    assert!(!script.contains("data-codex-plus-discord"));
 }
 
 #[test]
@@ -851,9 +852,22 @@ fn pick_page_target_rejects_non_pages_and_pages_without_websocket() {
 
 #[tokio::test]
 async fn list_targets_can_query_ipv6_loopback_cdp_endpoint() {
-    let listener = TcpListener::bind("[::1]:0")
-        .await
-        .expect("IPv6 loopback listener should bind");
+    // Containers and CI images are sometimes built without IPv6, where binding
+    // ::1 fails with EAFNOSUPPORT or EADDRNOTAVAIL. That says nothing about the
+    // code under test, so skip rather than fail; any other error is real.
+    let listener = match TcpListener::bind("[::1]:0").await {
+        Ok(listener) => listener,
+        Err(error)
+            if matches!(
+                error.kind(),
+                std::io::ErrorKind::AddrNotAvailable | std::io::ErrorKind::Unsupported
+            ) || error.raw_os_error() == Some(97) =>
+        {
+            eprintln!("skipping: no IPv6 loopback on this host ({error})");
+            return;
+        }
+        Err(error) => panic!("IPv6 loopback listener should bind: {error}"),
+    };
     let port = listener.local_addr().unwrap().port();
     let body = serde_json::to_vec(&json!([
         {

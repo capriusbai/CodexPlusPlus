@@ -282,6 +282,36 @@ Linux 没有 MS Store / `/Applications` 这样的固定安装位置，AetherCode
 
 只有确实包含可执行文件的目录才会被采纳，因此 `PATH` 上的 `codex` CLI 不会被误认成桌面版。自动识别失败时，在管理工具的设置里手动填写 Codex App 路径（可以直接填 `.AppImage` 文件路径）。
 
+## 使用说明书
+
+管理工具的「使用说明」页内置了完整说明书，离线可读，覆盖工作原理、安装、界面导览、
+供应商与中转注入、增强开关、脚本、数据位置和故障排查。
+
+源文件是 `apps/aethercodex-manager/public/help.html`（自带样式的独立 HTML）。
+版本号由 CI 校验：
+
+```bash
+python3 scripts/help/check-help-version.py
+```
+
+`version.rs` 一升版本、说明书没同步更新，CI 就会失败。
+
+## 上游同步
+
+本分支是上游 Codex++ 的重命名精简分叉，路径全改过且刻意删掉了部分功能，**不能直接
+`git merge upstream/main`**。改用分类报告：
+
+```bash
+python3 scripts/upstream/check_upstream.py          # 上游有哪些改动值得看
+python3 scripts/upstream/check_upstream.py --json
+python3 scripts/upstream/check_upstream.py --set-baseline <sha>   # 评审完记录进度
+```
+
+它把上游 commit 分成三类：**portable**（动到我们仍保留的代码）、**new**（上游独有子系统，
+是否采纳属于产品决策）、**declined**（只碰了我们刻意删掉的广告/赞赏，永远跳过）。
+`.github/workflows/upstream-watch.yml` 每天跑一次并维护一个跟踪 issue，
+基线记录在 `.upstream-sync.json`。
+
 ## 开发
 
 ```bash

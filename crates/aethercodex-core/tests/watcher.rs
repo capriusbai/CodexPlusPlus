@@ -14,10 +14,33 @@ fn cdp_listening_returns_true_for_bound_loopback_port() {
 
 #[test]
 fn cdp_listening_returns_true_for_bound_ipv6_loopback_port() {
-    let listener = std::net::TcpListener::bind("[::1]:0").unwrap();
+    let Some(listener) = bind_ipv6_loopback() else {
+        return;
+    };
     let port = listener.local_addr().unwrap().port();
 
     assert!(cdp_listening(port));
+}
+
+/// Bind an IPv6 loopback listener, or `None` when the host has no IPv6.
+///
+/// Containers and CI images are sometimes built without IPv6, where binding
+/// `::1` fails with EAFNOSUPPORT or EADDRNOTAVAIL. That says nothing about the
+/// code under test, so the caller skips; any other error is a real failure.
+fn bind_ipv6_loopback() -> Option<std::net::TcpListener> {
+    match std::net::TcpListener::bind("[::1]:0") {
+        Ok(listener) => Some(listener),
+        Err(error)
+            if matches!(
+                error.kind(),
+                std::io::ErrorKind::AddrNotAvailable | std::io::ErrorKind::Unsupported
+            ) || error.raw_os_error() == Some(97) =>
+        {
+            eprintln!("skipping: no IPv6 loopback on this host ({error})");
+            None
+        }
+        Err(error) => panic!("IPv6 loopback listener should bind: {error}"),
+    }
 }
 
 #[test]

@@ -2347,3 +2347,14 @@ body {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* The user manual is an isolated HTML document, so it only needs a frame that
+   fills the panel; its own stylesheet handles the rest. */
+.help-frame {
+  display: block;
+  width: 100%;
+  height: calc(100vh - 168px);
+  min-height: 420px;
+  border: 0;
+  background: hsl(var(--background));
+}

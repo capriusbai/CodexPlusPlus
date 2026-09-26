@@ -1,5 +1,19 @@
 # 更新日志
 
+## 未发布
+
+- 新增应用内《使用说明》页面：`apps/aethercodex-manager/public/help.html` 是一份自带样式、
+  可离线阅读的完整说明书（原理、安装、界面导览、供应商与中转注入、增强开关、脚本、数据位置、
+  故障排查），在管理工具里以 iframe 呈现并跟随深浅主题。
+- 新增 `scripts/help/check-help-version.py`：说明书里的版本标记必须和 `version.rs` 一致，
+  CI 会校验，版本号一升说明书没更新就会失败。
+- 新增上游监测：`.upstream-sync.json` 记录已评审到的上游 commit，
+  `scripts/upstream/check_upstream.py` 把上游改动分成 portable / new / declined 三类，
+  `.github/workflows/upstream-watch.yml` 每天跑一次并维护一个跟踪 issue。
+- 移除管理工具「关于」页和注入菜单里的 Discord、Telegram 入口（均为上游社区频道）。
+- 修复两个 IPv6 测试在无 IPv6 的容器/CI 镜像里失败的问题：现在检测到 EAFNOSUPPORT /
+  EADDRNOTAVAIL 时跳过，其他错误仍然失败。
+
 ## 2.0.0 - 2026-09-26
 
 重大变更：项目更名为 **AetherCodex**，采用 Archai CI/VI 视觉规范。升级会自动迁移

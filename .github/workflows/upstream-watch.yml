@@ -1,0 +1,94 @@
+name: Upstream watch
+
+# AetherCodex is a renamed, trimmed fork of Codex++, so upstream changes cannot
+# be merged directly. This classifies what upstream has done since the recorded
+# baseline and keeps a single tracking issue up to date.
+
+on:
+  schedule:
+    # 07:11 UTC daily. Off the hour so it is not queued behind every other
+    # cron job in the region.
+    - cron: "11 7 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: upstream-watch
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # The script walks history back to the baseline commit.
+          fetch-depth: 0
+
+      - name: Check upstream
+        id: check
+        run: |
+          set +e
+          python3 scripts/upstream/check_upstream.py > upstream-report.md
+          status=$?
+          set -e
+          if [ "$status" = "2" ]; then
+            echo "upstream check failed" >&2
+            cat upstream-report.md >&2
+            exit 1
+          fi
+          echo "actionable=$status" >> "$GITHUB_OUTPUT"
+          cat upstream-report.md
+
+      - name: Open or update the tracking issue
+        if: steps.check.outputs.actionable == '1'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          title="Upstream sync: changes to review"
+          # One long-lived issue rather than a new one per run.
+          number="$(gh issue list --repo "$REPO" --state open \
+            --search "$title in:title" --json number,title \
+            --jq ".[] | select(.title == \"$title\") | .number" | head -1)"
+          {
+            echo "_Updated by the upstream watch on $(date -u +%Y-%m-%d)._"
+            echo
+            cat upstream-report.md
+          } > issue-body.md
+          if [ -n "$number" ]; then
+            gh issue edit "$number" --repo "$REPO" --body-file issue-body.md
+            echo "updated issue #$number"
+          else
+            gh issue create --repo "$REPO" --title "$title" \
+              --body-file issue-body.md
+          fi
+
+      - name: Close the tracking issue when nothing is outstanding
+        if: steps.check.outputs.actionable == '0'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          title="Upstream sync: changes to review"
+          number="$(gh issue list --repo "$REPO" --state open \
+            --search "$title in:title" --json number,title \
+            --jq ".[] | select(.title == \"$title\") | .number" | head -1)"
+          if [ -n "$number" ]; then
+            gh issue close "$number" --repo "$REPO" \
+              --comment "Upstream has nothing left to review at the recorded baseline."
+          fi
+
+      - name: Upload the report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: upstream-report
+          path: upstream-report.md
+          if-no-files-found: warn

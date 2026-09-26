@@ -22,6 +22,7 @@ import {
   CheckCircle2,
   CircleArrowUp,
   Copy,
+  BookOpen,
   Download,
   Edit3,
   GripVertical,
@@ -470,7 +471,7 @@ type StartupResult = CommandResult<{
   showUpdate: boolean;
 }>;
 
-type Route = "overview" | "relay" | "sessions" | "context" | "enhance" | "zedRemote" | "userScripts" | "maintenance" | "about" | "settings";
+type Route = "overview" | "relay" | "sessions" | "context" | "enhance" | "zedRemote" | "userScripts" | "help" | "maintenance" | "about" | "settings";
 type Theme = "dark" | "light";
 
 const routes: Array<{ id: Route; label: string; icon: LucideIcon }> = [
@@ -481,6 +482,7 @@ const routes: Array<{ id: Route; label: string; icon: LucideIcon }> = [
   { id: "enhance", label: "页面增强", icon: Hammer },
   { id: "zedRemote", label: "Zed 远程项目", icon: ExternalLink },
   { id: "userScripts", label: "脚本市场", icon: FileCode2 },
+  { id: "help", label: "使用说明", icon: BookOpen },
   { id: "maintenance", label: "安装维护", icon: Wrench },
   { id: "about", label: "关于", icon: Info },
   { id: "settings", label: "设置", icon: Settings },
@@ -1652,6 +1654,7 @@ export function App() {
             <ZedRemoteScreen projects={zedRemoteProjects} form={settingsForm} onFormChange={setSettingsForm} actions={actions} />
           ) : null}
           {route === "userScripts" ? <UserScriptsScreen settings={settings} market={scriptMarket} actions={actions} /> : null}
+          {route === "help" ? <HelpScreen theme={theme} /> : null}
           {route === "maintenance" ? (
             <MaintenanceScreen
               overview={overview}
@@ -2504,14 +2507,6 @@ function AboutScreen({
             <Button onClick={() => void actions.openExternalUrl("https://github.com/capriusbai/CodexPlusPlus/issues")} variant="secondary">
               <ExternalLink className="h-4 w-4" />
               反馈问题
-            </Button>
-            <Button onClick={() => void actions.openExternalUrl("https://discord.gg/y96kX7A76v")} variant="secondary">
-              <MessageCircle className="h-4 w-4" />
-              Discord
-            </Button>
-            <Button onClick={() => void actions.openExternalUrl("https://t.me/CodexPlusPlus")} variant="secondary">
-              <MessageCircle className="h-4 w-4" />
-              Telegram
             </Button>
           </Toolbar>
         </CardContent>
@@ -3762,6 +3757,28 @@ function ScriptRow({ script, actions }: { script: NonNullable<UserScriptInventor
   );
 }
 
+/**
+ * The user manual, shipped as a self-contained HTML page in `public/help.html`
+ * so it stays readable offline and can be updated without touching the app
+ * shell. The theme is handed over on load and on every later change.
+ */
+function HelpScreen({ theme }: { theme: string }) {
+  const frame = useRef<HTMLIFrameElement | null>(null);
+  useEffect(() => {
+    frame.current?.contentWindow?.postMessage({ theme }, "*");
+  }, [theme]);
+  return (
+    <Panel>
+      <iframe
+        ref={frame}
+        className="help-frame"
+        src={`help.html?theme=${encodeURIComponent(theme)}`}
+        title="AetherCodex 使用说明"
+      />
+    </Panel>
+  );
+}
+
 function routeTitle(route: Route) {
   return routes.find((item) => item.id === route)?.label ?? "概览";
 }
@@ -3775,6 +3792,7 @@ function routeSubtitle(route: Route) {
     enhance: "会话删除、导出、项目移动和脚本能力",
     zedRemote: "管理 Codex SSH 项目并加入 Zed workspace",
     userScripts: "内置和用户自定义脚本清单",
+    help: "完整使用说明书：原理、配置、增强功能与故障排查",
     maintenance: "入口安装、修复、Watcher 与手动启动",
     about: "版本信息、项目链接、GitHub Release 更新、日志与诊断",
     settings: "主题、命令包装器和启动参数",

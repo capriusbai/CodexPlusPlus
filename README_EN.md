@@ -253,6 +253,39 @@ Linux has no fixed install location like the Microsoft Store or `/Applications`,
 
 Only directories that really contain an executable are accepted, so a `codex` CLI on `PATH` is never mistaken for the desktop app. If detection fails, set the Codex App path manually in the manager's settings — an `.AppImage` file path works too.
 
+## User manual
+
+The manager's "使用说明" page carries a complete offline manual covering how the
+injection works, installation, a tour of every screen, providers and relay
+injection, the enhancement switches, scripts, data locations and
+troubleshooting.
+
+The source is `apps/aethercodex-manager/public/help.html`, a self-contained
+styled HTML document. Its version marker is checked in CI:
+
+```bash
+python3 scripts/help/check-help-version.py
+```
+
+Bumping `version.rs` without updating the manual fails the build.
+
+## Upstream sync
+
+This fork renamed every path and removed some features, so
+`git merge upstream/main` is not usable. A classifying report is used instead:
+
+```bash
+python3 scripts/upstream/check_upstream.py          # what upstream changed
+python3 scripts/upstream/check_upstream.py --json
+python3 scripts/upstream/check_upstream.py --set-baseline <sha>
+```
+
+Commits are split into **portable** (touches code this fork still carries),
+**new** (upstream-only subsystems — adopting one is a product decision) and
+**declined** (only touches the ad/donation code removed on purpose).
+`.github/workflows/upstream-watch.yml` runs daily and maintains a single
+tracking issue; the baseline lives in `.upstream-sync.json`.
+
 ## Development
 
 ```bash
