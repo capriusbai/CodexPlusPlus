@@ -1,7 +1,7 @@
-# Codex++
+# AetherCodex
 
 <p align="center">
-  <img src="docs/images/codex-plus-plus.png" alt="Codex++ icon" width="160">
+  <img src="docs/images/aethercodex.png" alt="AetherCodex icon" width="160">
 </p>
 
 <p align="center">
@@ -9,38 +9,38 @@
 </p>
 
 <p align="center">
-  <img alt="Release" src="https://img.shields.io/github/v/release/BigPizzaV3/CodexPlusPlus">
-  <img alt="Stars" src="https://img.shields.io/github/stars/BigPizzaV3/CodexPlusPlus">
-  <img alt="License" src="https://img.shields.io/github/license/BigPizzaV3/CodexPlusPlus">
+  <img alt="Release" src="https://img.shields.io/github/v/release/capriusbai/CodexPlusPlus">
+  <img alt="Stars" src="https://img.shields.io/github/stars/capriusbai/CodexPlusPlus">
+  <img alt="License" src="https://img.shields.io/github/license/capriusbai/CodexPlusPlus">
   <img alt="Rust" src="https://img.shields.io/badge/rust-1.85%2B-orange">
   <img alt="Tauri" src="https://img.shields.io/badge/tauri-2.x-24C8DB">
 </p>
 
-Codex++ is an external enhancement launcher and manager for the Codex App. It does not modify the original Codex installation. Instead, it starts Codex externally and injects enhancements through the Chromium DevTools Protocol.
+AetherCodex is an external enhancement launcher and manager for the Codex App. It does not modify the original Codex installation. Instead, it starts Codex externally and injects enhancements through the Chromium DevTools Protocol.
 
 ## Quick Start
 
-Download the latest installer from [GitHub Releases](https://github.com/BigPizzaV3/CodexPlusPlus/releases):
+Download the latest installer from [GitHub Releases](https://github.com/capriusbai/CodexPlusPlus/releases):
 
-- Windows: `CodexPlusPlus-*-windows-x64-setup.exe`
-- macOS Intel: `CodexPlusPlus-*-macos-x64.dmg`
-- macOS Apple Silicon: `CodexPlusPlus-*-macos-arm64.dmg`
-- Linux x86_64: `CodexPlusPlus-*-linux-x64.deb` or `CodexPlusPlus-*-linux-x64.tar.gz`
-- Linux arm64: `CodexPlusPlus-*-linux-arm64.deb` or `CodexPlusPlus-*-linux-arm64.tar.gz`
+- Windows: `AetherCodex-*-windows-x64-setup.exe`
+- macOS Intel: `AetherCodex-*-macos-x64.dmg`
+- macOS Apple Silicon: `AetherCodex-*-macos-arm64.dmg`
+- Linux x86_64: `AetherCodex-*-linux-x64.deb` or `AetherCodex-*-linux-x64.tar.gz`
+- Linux arm64: `AetherCodex-*-linux-arm64.deb` or `AetherCodex-*-linux-arm64.tar.gz`
 
 After installation, two entry points are available:
 
-- `Codex++`: a silent launcher. It does not show the manager UI and only starts Codex with Codex++ injection.
-- `Codex++ Manager`: a Tauri control panel for launch, diagnostics, repair, updates, relay injection, enhancements, and user scripts.
+- `AetherCodex`: a silent launcher. It does not show the manager UI and only starts Codex with AetherCodex injection.
+- `AetherCodex Manager`: a Tauri control panel for launch, diagnostics, repair, updates, relay injection, enhancements, and user scripts.
 
-The Windows installer creates desktop and Start Menu shortcuts. The macOS DMG installs `/Applications/Codex++.app` and `/Applications/Codex++ 管理工具.app`. The Linux `.deb` installs into `/usr/lib/codex-plus-plus/` and registers `Codex++` and `Codex++ Manager` in the application menu.
+The Windows installer creates desktop and Start Menu shortcuts. The macOS DMG installs `/Applications/AetherCodex.app` and `/Applications/AetherCodex 管理工具.app`. The Linux `.deb` installs into `/usr/lib/aethercodex/` and registers `AetherCodex` and `AetherCodex Manager` in the application menu.
 
 ### Ubuntu 26.04 / 24.04, Debian 13+
 
 The `.deb` targets Ubuntu 24.04 and newer (including 26.04) and Debian 13 and newer, and relies on the WebKitGTK 4.1 runtime those releases ship:
 
 ```bash
-sudo apt install ./CodexPlusPlus-1.3.0-linux-x64.deb
+sudo apt install ./AetherCodex-1.3.0-linux-x64.deb
 ```
 
 `apt` pulls in the runtime dependencies (`libwebkit2gtk-4.1-0`, `libgtk-3-0t64`, and friends). If you install with `dpkg -i` instead and it reports missing dependencies, run `sudo apt -f install`.
@@ -48,7 +48,7 @@ sudo apt install ./CodexPlusPlus-1.3.0-linux-x64.deb
 To remove it:
 
 ```bash
-sudo apt remove codex-plus-plus
+sudo apt remove aethercodex
 ```
 
 ### Other distributions (tar.gz)
@@ -56,108 +56,73 @@ sudo apt remove codex-plus-plus
 The `.tar.gz` needs no package manager and installs into `~/.local` for the current user:
 
 ```bash
-tar -xzf CodexPlusPlus-1.3.0-linux-x64.tar.gz
-cd CodexPlusPlus-1.3.0-linux-x64
-./install.sh            # or PREFIX=/opt/codex-plus-plus ./install.sh
+tar -xzf AetherCodex-1.3.0-linux-x64.tar.gz
+cd AetherCodex-1.3.0-linux-x64
+./install.sh            # or PREFIX=/opt/aethercodex ./install.sh
 ```
 
 Make sure the distribution provides the WebKitGTK 4.1 runtime first (`libwebkit2gtk-4.1-0` on Ubuntu/Debian, `webkit2gtk4.1` on Fedora, `webkit2gtk-4.1` on Arch). Run `./uninstall.sh` from the same directory to remove it.
 
-`install.sh` calls `codex-plus-plus-manager --install-entrypoints` to write the user-level `.desktop` entries. You can rerun that command at any time to rebuild them, or pass `--uninstall-entrypoints` to remove them.
+`install.sh` calls `aethercodex-manager --install-entrypoints` to write the user-level `.desktop` entries. You can rerun that command at any time to rebuild them, or pass `--uninstall-entrypoints` to remove them.
 
-## Sponsors
+## About this fork
 
-<p align="center">
-  <a href="https://jojocode.com/">
-    <img src="docs/images/sponsor-jojocode.svg" alt="JOJO Code" width="180">
-  </a>
-</p>
-<p align="center">
-  <a href="https://jojocode.com/"><strong>JOJO Code | Official Codex++ Relay</strong></a><br>
-  The official Codex++ relay service, focused on stable access and cost-effective pricing. JOJO Code supports GPT-5.5, GPT-5.4, Claude Opus 4.8, Claude Opus 4.7, gpt-image-2, and more for daily development, team collaboration, and long-running project workflows.
-</p>
+AetherCodex is a rebranded fork of [Codex++](https://github.com/BigPizzaV3/CodexPlusPlus), maintained by Archai.
+The upstream project is MIT-licensed by BigPizzaV3; the external launcher and
+CDP injection design, the enhancement scripts and most of the feature work come
+from upstream, and the copyright notice is retained in the package `copyright`
+file as the licence requires.
 
-<p align="center">
-  <a href="mailto:1727532@qq.com">Want to be shown below?</a>
-</p>
-<table>
-  <tr>
-    <th width="180">🏆 Sponsor 🏆</th>
-    <th>Introduction</th>
-  </tr>
-  <tr>
-    <td align="center">
-      <a href="https://jojocode.com/">
-        <img src="docs/images/sponsor-jojocode.svg" alt="JOJO Code" width="150">
-      </a>
-    </td>
-    <td><a href="https://jojocode.com/"><strong>JOJO Code | Official Codex++ Relay</strong></a><br>Thanks to JOJO Code for sponsoring this project. JOJO Code is the official Codex++ relay service with cost-effective pricing and stable, easy-to-configure Codex API access. It supports GPT-5.5, GPT-5.4, Claude Opus 4.8, Claude Opus 4.7, gpt-image-2, and more for daily development, quick setup, team collaboration, and continuous use.</td>
-  </tr>
-  <tr>
-    <td align="center">
-      <a href="https://aigocode.com/invite/CodexPlusPlus">
-        <img src="docs/images/sponsor-aigocode.png" alt="AIGoCode" width="150">
-      </a>
-    </td>
-    <td><a href="https://aigocode.com/invite/CodexPlusPlus"><strong>AIGoCode</strong></a><br>Thanks to AIGoCode for sponsoring this project! AIGoCode is an all-in-one platform integrating the latest Claude Code, Codex, and Gemini models, providing stable, efficient, and cost-effective AI programming services. It offers flexible subscription plans, direct access in China, no extra network setup, and fast responses. AIGoCode provides a special benefit for CodexPlusPlus users: users who <a href="https://aigocode.com/invite/CodexPlusPlus">register through this link</a> can receive an extra 10% bonus credit on their first recharge.</td>
-  </tr>
-  <tr>
-    <td align="center">
-      <a href="https://www.packyapi.com/">
-        <img src="docs/images/sponsor-packycode.png" alt="PackyCode" width="150">
-      </a>
-    </td>
-    <td><a href="https://www.packyapi.com/"><strong>PackyCode</strong></a><br>Thanks to PackyCode for sponsoring this project! PackyCode is a stable and efficient API relay service provider, offering relay services for Claude Code, Codex, Gemini, and more. PackyCode provides a special discount for users of this software: register through this link and enter the "CodexPlusPlus" coupon code when recharging to get 10% off your first recharge.</td>
-  </tr>
-  <tr>
-    <td align="center">
-      <a href="https://apikey.fun/register?aff=CODEX">
-        <img src="docs/images/sponsor-apikey-fun.png" alt="APIKEY.FUN" width="150">
-      </a>
-    </td>
-    <td><a href="https://apikey.fun/register?aff=CODEX"><strong>APIKEY.FUN</strong></a><br>Thanks to APIKEY.FUN for sponsoring this project! APIKEY.FUN is an AI relay platform focused on open, stable, and cost-effective access to mainstream global models. It supports API relay services for Claude, OpenAI, Gemini, and other popular models, with prices as low as 7% of the official rate. Register through the dedicated link to receive up to a permanent 5% recharge discount.</td>
-  </tr>
-  <tr>
-    <td align="center">
-      <a href="https://runapi.co/register?aff=AWJq">
-        <img src="docs/images/sponsor-runapi.png" alt="RunAPI" width="150">
-      </a>
-    </td>
-    <td><a href="https://runapi.co/register?aff=AWJq"><strong>RunAPI</strong></a><br>Thanks to RunAPI for sponsoring this project! RunAPI is an efficient and stable OpenRouter alternative API platform. One API key can access OpenAI, Claude, Gemini, DeepSeek, Grok, and 150+ mainstream models at prices as low as 10% of the original rate, with seamless compatibility for tools such as Claude Code and OpenClaw.</td>
-  </tr>
-  <tr>
-    <td align="center">
-      <a href="https://www.0029.org/?promo=AFF11F">
-        <img src="docs/images/sponsor-0029.svg" alt="0029 Cloud Bridge" width="150">
-      </a>
-    </td>
-    <td><a href="https://www.0029.org/?promo=AFF11F"><strong>0029 Cloud Bridge | Codex API Relay Station (gpt5.5 gpt-image-2)</strong></a><br>Supports individual and enterprise access. Monthly plans and pay-as-you-go billing are available, with Pro/Plus account pools, stable site-wide APIs, and 24/7 technical support.</td>
-  </tr>
-  <tr>
-    <td align="center">
-      <a href="https://rawchat.cn">
-        <img src="docs/images/sponsor-rawchat.svg" alt="RawChat" width="150">
-      </a>
-    </td>
-    <td><a href="https://rawchat.cn"><strong>RawChat | Codex Relay Station</strong></a><br>A long-running relay station with monthly plans, low-rate usage, high cache hit rates, Pro/Plus account pools, and dedicated all-day maintenance.</td>
-  </tr>
-  <tr>
-    <td align="center">
-      <a href="https://coder.visioncoder.cn">
-        <img src="https://coder.visioncoder.cn/logo.png" alt="VisionCoder" width="110">
-      </a>
-    </td>
-    <td><a href="https://coder.visioncoder.cn"><strong>VisionCoder Developer Platform</strong></a><br>Thanks to VisionCoder for supporting this project. VisionCoder Developer Platform is a reliable and efficient API relay service provider, offering access to mainstream AI models such as Claude Code, Codex, and Gemini. It helps developers and teams integrate AI capabilities more easily and improve productivity. VisionCoder is also offering our users a limited-time <a href="https://coder.visioncoder.cn">Token Plan</a> promotion: buy 1 month and get 1 month free.</td>
-  </tr>
-</table>
+What this fork changes:
 
+- branding, naming, package identity and interface visuals move to
+  AetherCodex / the Archai CI-VI;
+- Linux releases are added (Ubuntu 24.04 and newer, including 26.04);
+- automatic updates resolve against this fork's releases rather than upstream's.
+
+Upstream's sponsors, chat groups and donation channels belong to the upstream
+project and were not carried over. To support the original author or join that
+community, go to the [upstream repository](https://github.com/BigPizzaV3/CodexPlusPlus).
+
+## Brand and interface
+
+The interface follows the Archai CI/VI working standard (`ARCHAI-CIVI-001`):
+square geometry, hairline rules and restrained semantic colour, with no
+decorative shadow, gradient or glassmorphism.
+
+| Colour | sRGB | Meaning |
+| --- | --- | --- |
+| Archai Orange | `#ED9527` | brand anchor, section marker. **Never** small body copy on a light surface (2.35:1 on white) |
+| Aether Blue | `#2F6FED` | connection, interface, link, editable field |
+| Evidence Green | `#2F855A` | verified / released / closed status backed by evidence only |
+| Engineering Graphite | `#0B0D10` | primary typography and technical authority |
+| Secondary Ink | `#626A78` | metadata and secondary copy |
+| Soft Surface | `#F7F9FC` | non-semantic surface layering |
+| Hairline | `#DDE3EC` | rules and table boundaries |
+
+Blue and green are lightened in the dark theme and darkened in the light theme
+so both clear WCAG AA body contrast (4.5:1). Orange gets a darkened ink variant
+for text and icons on light surfaces.
+
+### Replacing the logo
+
+Every icon is generated from one master:
+
+```bash
+# Replace assets/brand/aethercodex-mark.svg (or .png, >= 1024x1024), then:
+bash scripts/brand/generate-icons.sh          # regenerate Windows .ico / macOS .icns / Linux PNG / app icon
+bash scripts/brand/generate-icons.sh --check  # verify the icons match the master (CI runs this)
+```
+
+The mark currently in the repository is a **working placeholder**, not the
+approved Archai master. See [`assets/brand/README.md`](assets/brand/README.md).
 
 ## Highlights
 
 - Rust backend and silent launcher with no extra runtime requirement.
 - Tauri + React manager with dark/light theme support.
 - External CDP injection. No `app.asar` patching and no DLL writes into the Codex installation.
-- Relay injection mode with multiple relay profiles, `CodexPlusPlus` provider configuration, and a one-click switch back to official ChatGPT login mode.
+- Relay injection mode with multiple relay profiles, `AetherCodex` provider configuration, and a one-click switch back to official ChatGPT login mode.
 - Traditional enhancement mode with plugin entry unlock, forced plugin install, session delete, Markdown export, project move, Timeline, and more.
 - Independent user script management with startup injection.
 - Provider Sync to keep historical sessions visible after switching providers.
@@ -192,15 +157,15 @@ In the manager's Relay Injection page:
 1. Make sure ChatGPT login status is detected.
 2. Add one or more relay profiles with Base URL and Key.
 3. Select the active profile and apply relay injection.
-4. Launch `Codex++`.
+4. Launch `AetherCodex`.
 
-Codex++ writes configuration similar to this into `~/.codex/config.toml`:
+AetherCodex writes configuration similar to this into `~/.codex/config.toml`:
 
 ```toml
-model_provider = "CodexPlusPlus"
+model_provider = "AetherCodex"
 
-[model_providers.CodexPlusPlus]
-name = "CodexPlusPlus"
+[model_providers.AetherCodex]
+name = "AetherCodex"
 wire_api = "responses"
 requires_openai_auth = true
 base_url = "https://example.com/v1"
@@ -211,7 +176,7 @@ To return to the official login mode, use the clear API mode button in the Relay
 
 ## Enhancements
 
-Enhancements are controlled in the manager. Enhancement injection is enabled by default. When disabled, Codex++ will not inject its menu or scripts.
+Enhancements are controlled in the manager. Enhancement injection is enabled by default. When disabled, AetherCodex will not inject its menu or scripts.
 
 When relay injection mode is active, plugin entry unlock and forced plugin install are unnecessary, and the UI will say so. Other enhancements, including session delete, export, move, Timeline, recommendations, and user scripts, can still be used.
 
@@ -228,7 +193,7 @@ Requests automatically append a `?v=timestamp` cache buster to avoid stale CDN c
 
 ## Updates and Packages
 
-Codex++ publishes installers through GitHub Releases. Windows builds an NSIS installer, macOS builds separate Intel x64 and Apple Silicon arm64 DMGs, and Linux builds `.deb` and `.tar.gz` artifacts for x64 and arm64.
+AetherCodex publishes installers through GitHub Releases. Windows builds an NSIS installer, macOS builds separate Intel x64 and Apple Silicon arm64 DMGs, and Linux builds `.deb` and `.tar.gz` artifacts for x64 and arm64.
 
 The manager's About page can check and start updates. When the silent launcher finds a new version, it opens the manager directly on the update prompt. Only assets matching the current OS and CPU architecture are offered: on Linux the `.deb` wins, falling back to the same-architecture `.tar.gz` when no matching `.deb` exists.
 
@@ -237,14 +202,14 @@ The manager's About page can check and start updates. When the silent launcher f
 - Codex config: `~/.codex/config.toml`
 - Codex auth state: `~/.codex/auth.json`
 - Codex local database: `~/.codex/state_5.sqlite`
-- Codex++ state and logs: `~/.codex-session-delete/`
+- AetherCodex state and logs: `~/.aethercodex/`
 - Provider Sync backups: `~/.codex/backups_state/provider-sync`
 
 ## FAQ
 
-### The Codex++ menu does not appear
+### The AetherCodex menu does not appear
 
-Make sure Codex was launched from the `Codex++` entry instead of the original Codex entry. You can also inspect the Diagnostics and Logs pages in the manager.
+Make sure Codex was launched from the `AetherCodex` entry instead of the original Codex entry. You can also inspect the Diagnostics and Logs pages in the manager.
 
 ### The plugin says the backend is disconnected
 
@@ -254,17 +219,17 @@ First test the helper endpoint:
 Invoke-RestMethod -Method Post -Uri http://127.0.0.1:57321/backend/status -Body "{}" -ContentType "application/json"
 ```
 
-If the endpoint works but the plugin still times out, it is usually a Codex page CDP bridge or script cache issue. Restart Codex++, or check manager logs for `renderer.script_loaded`, `bridge.request`, and `bridge.response`.
+If the endpoint works but the plugin still times out, it is usually a Codex page CDP bridge or script cache issue. Restart AetherCodex, or check manager logs for `renderer.script_loaded`, `bridge.request`, and `bridge.response`.
 
 ### How is Upstream worktree different from Codex native creation?
 
-Codex++ updates the remote branch first, then creates the worktree as if you ran:
+AetherCodex updates the remote branch first, then creates the worktree as if you ran:
 
 ```bash
 git worktree add -b <new-branch> <worktree-path> upstream/<base-branch>
 ```
 
-The new worktree starts from the fresh remote tracking branch instead of the local HEAD used by the current session. If Codex++ cannot safely recognize the current Codex version's native worktree form, use the Codex++ menu entry and enter the repository path, branch name, worktree path, remote, and base branch manually.
+The new worktree starts from the fresh remote tracking branch instead of the local HEAD used by the current session. If AetherCodex cannot safely recognize the current Codex version's native worktree form, use the AetherCodex menu entry and enter the repository path, branch name, worktree path, remote, and base branch manually.
 
 ### macOS says the app cannot be opened or is damaged
 
@@ -279,10 +244,10 @@ Yes. Releases provide both `macos-x64.dmg` and `macos-arm64.dmg`. Intel Macs sho
 That is a WebKitGTK rendering problem, not an injection failure. Try disabling the accelerated renderer first:
 
 ```bash
-WEBKIT_DISABLE_DMABUF_RENDERER=1 codex-plus-plus-manager
+WEBKIT_DISABLE_DMABUF_RENDERER=1 aethercodex-manager
 ```
 
-Since Ubuntu 24.04 the kernel ships `kernel.apparmor_restrict_unprivileged_userns=1`, which stops processes that rely on the bubblewrap sandbox from creating a user namespace. The Codex++ manager itself does not use that sandbox, but the Codex App it launches (Electron/Chromium) can be affected. If Codex itself fails to start, load the profile Ubuntu ships for this:
+Since Ubuntu 24.04 the kernel ships `kernel.apparmor_restrict_unprivileged_userns=1`, which stops processes that rely on the bubblewrap sandbox from creating a user namespace. The AetherCodex manager itself does not use that sandbox, but the Codex App it launches (Electron/Chromium) can be affected. If Codex itself fails to start, load the profile Ubuntu ships for this:
 
 ```bash
 sudo apt install apparmor-profiles
@@ -290,9 +255,9 @@ sudo install -m 0644 /usr/share/apparmor/extra-profiles/bwrap-userns-restrict /e
 sudo apparmor_parser -r /etc/apparmor.d/bwrap-userns-restrict
 ```
 
-### Codex++ cannot find the Codex App on Linux
+### AetherCodex cannot find the Codex App on Linux
 
-Linux has no fixed install location like the Microsoft Store or `/Applications`, so Codex++ looks under `/opt`, `/usr/lib`, `/usr/share`, `~/.local/share`, and `~/Applications` for a directory holding a Codex executable (`Codex`, `codex`, or `codex-app`), plus any `.AppImage` whose name contains `codex`.
+Linux has no fixed install location like the Microsoft Store or `/Applications`, so AetherCodex looks under `/opt`, `/usr/lib`, `/usr/share`, `~/.local/share`, and `~/Applications` for a directory holding a Codex executable (`Codex`, `codex`, or `codex-app`), plus any `.AppImage` whose name contains `codex`.
 
 Only directories that really contain an executable are accepted, so a `codex` CLI on `PATH` is never mistaken for the desktop app. If detection fails, set the Codex App path manually in the manager's settings — an `.AppImage` file path works too.
 
@@ -300,7 +265,7 @@ Only directories that really contain an executable are accepted, so a `codex` CL
 
 ```bash
 # Frontend checks
-cd apps/codex-plus-manager
+cd apps/aethercodex-manager
 npm install
 npm run check
 npm run vite:build
@@ -316,15 +281,15 @@ Project structure:
 
 ```text
 apps/
-  codex-plus-launcher/          Silent launcher
-  codex-plus-manager/           Tauri manager
+  aethercodex-launcher/          Silent launcher
+  aethercodex-manager/           Tauri manager
 assets/inject/
   renderer-inject.js            Enhancement script injected into Codex
 crates/
-  codex-plus-core/              Launch, injection, config, update, install, bridge
-  codex-plus-data/              Session data, export, Provider Sync
+  aethercodex-core/              Launch, injection, config, update, install, bridge
+  aethercodex-data/              Session data, export, Provider Sync
 scripts/installer/
-  windows/CodexPlusPlus.nsi     Windows NSIS installer
+  windows/AetherCodex.nsi     Windows NSIS installer
   macos/package-dmg.sh          macOS DMG packager
   linux/package-linux.sh        Linux .deb and .tar.gz packager
 ```
@@ -341,21 +306,16 @@ Artifacts land in `dist/linux/`. CI pins the build to `ubuntu-24.04`: its glibc 
 
 ## Community and Support
 
-Join the Codex++ discussion group to report issues, share usage notes, or suggest features:
+Report problems and suggestions for this fork in [Issues](https://github.com/capriusbai/CodexPlusPlus/issues).
 
-WeChat group: [get the latest QR code](https://docs.qq.com/doc/DQ2VOanZTTFZJcUpZ#).
-
-If Codex++ has helped you, you can buy me a coffee or send a small tip to support continued maintenance.
-
-<p align="center">
-  <img src="docs/images/sponsor-alipay.jpg" alt="Alipay sponsor QR code" width="220">
-  <img src="docs/images/sponsor-wechat.jpg" alt="WeChat sponsor QR code" width="220">
-</p>
+The Codex++ community channels (QQ, WeChat, Telegram) belong to the upstream
+project; find them in the [upstream repository](https://github.com/BigPizzaV3/CodexPlusPlus).
 
 ## Friendly Links
 
+- [Upstream project Codex++](https://github.com/BigPizzaV3/CodexPlusPlus)
 - [LINUX DO](https://linux.do)
 
 ## Notes
 
-Codex++ is an external enhancement tool and does not modify original Codex App files. If a future Codex App update changes page structure, the injection script may need updates.
+AetherCodex is an external enhancement tool and does not modify original Codex App files. If a future Codex App update changes page structure, the injection script may need updates.

@@ -28,11 +28,11 @@ jobs:
         run: choco install nsis -y
 
       - name: Install frontend dependencies
-        working-directory: apps/codex-plus-manager
+        working-directory: apps/aethercodex-manager
         run: npm install --package-lock=false
 
       - name: Build frontend
-        working-directory: apps/codex-plus-manager
+        working-directory: apps/aethercodex-manager
         run: npm run vite:build
 
       - name: Build binaries
@@ -42,8 +42,8 @@ jobs:
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force dist/windows/app | Out-Null
-          Copy-Item target/release/codex-plus-plus.exe dist/windows/app/
-          Copy-Item target/release/codex-plus-plus-manager.exe dist/windows/app/
+          Copy-Item target/release/aethercodex.exe dist/windows/app/
+          Copy-Item target/release/aethercodex-manager.exe dist/windows/app/
 
       - name: Build Windows installer
         shell: pwsh
@@ -54,7 +54,7 @@ jobs:
             $makensis = "makensis"
           }
           Push-Location scripts/installer/windows
-          & $makensis "/INPUTCHARSET" "UTF8" "/DVERSION=$version" CodexPlusPlus.nsi
+          & $makensis "/INPUTCHARSET" "UTF8" "/DVERSION=$version" AetherCodex.nsi
           Pop-Location
 
       - name: Upload Windows installer
@@ -93,11 +93,11 @@ jobs:
           targets: ${{ matrix.target }}
 
       - name: Install frontend dependencies
-        working-directory: apps/codex-plus-manager
+        working-directory: apps/aethercodex-manager
         run: npm install --package-lock=false
 
       - name: Build frontend
-        working-directory: apps/codex-plus-manager
+        working-directory: apps/aethercodex-manager
         run: npm run vite:build
 
       - name: Build binaries
@@ -112,7 +112,7 @@ jobs:
       - name: Verify macOS bundle structure
         run: |
           set -euo pipefail
-          for app in "dist/macos/stage/Codex++.app" "dist/macos/stage/Codex++ 管理工具.app"; do
+          for app in "dist/macos/stage/AetherCodex.app" "dist/macos/stage/AetherCodex 管理工具.app"; do
             test -f "$app/Contents/Info.plist"
             test -f "$app/Contents/PkgInfo"
             test -x "$app/Contents/MacOS/$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$app/Contents/Info.plist")"
@@ -163,14 +163,21 @@ jobs:
             libwebkit2gtk-4.1-dev \
             libgtk-3-dev \
             librsvg2-dev \
-            desktop-file-utils
+            desktop-file-utils \
+            librsvg2-bin \
+            icoutils \
+            icnsutils \
+            imagemagick
+
+      - name: Verify icons match the brand master
+        run: bash scripts/brand/generate-icons.sh --check
 
       - name: Install frontend dependencies
-        working-directory: apps/codex-plus-manager
+        working-directory: apps/aethercodex-manager
         run: npm install --package-lock=false
 
       - name: Build frontend
-        working-directory: apps/codex-plus-manager
+        working-directory: apps/aethercodex-manager
         run: npm run vite:build
 
       - name: Build binaries
@@ -186,12 +193,12 @@ jobs:
         run: |
           set -euo pipefail
           sudo apt-get install -y ./dist/linux/*.deb
-          dpkg -L codex-plus-plus
-          codex-plus-plus-manager --install-entrypoints
-          test -f "$HOME/.local/share/applications/codex-plus-plus.desktop"
-          test -f "$HOME/.local/share/applications/codex-plus-plus-manager.desktop"
-          codex-plus-plus-manager --uninstall-entrypoints
-          sudo apt-get remove -y codex-plus-plus
+          dpkg -L aethercodex
+          aethercodex-manager --install-entrypoints
+          test -f "$HOME/.local/share/applications/aethercodex.desktop"
+          test -f "$HOME/.local/share/applications/aethercodex-manager.desktop"
+          aethercodex-manager --uninstall-entrypoints
+          sudo apt-get remove -y aethercodex
 
       - name: Upload Linux packages
         uses: softprops/action-gh-release@v2

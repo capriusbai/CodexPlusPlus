@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="AetherCodex">
+  <title>AetherCodex</title>
+  <desc>WORKING PLACEHOLDER. Geometry and colour follow ARCHAI-CIVI-001 (square
+  geometry, Archai Orange as brand anchor, Aether Blue as connection). This is
+  not the approved Archai vector master; replace this file and rerun
+  scripts/brand/generate-icons.sh.</desc>
+  <rect width="256" height="256" fill="#0B0D10"/>
+  <rect x="8" y="8" width="240" height="240" fill="none" stroke="#DDE3EC" stroke-opacity="0.18" stroke-width="2"/>
+  <!-- Ascending strokes: the Aether architecture mark. -->
+  <path d="M128 44 L196 212 L160 212 L128 132 L96 212 L60 212 Z" fill="#ED9527"/>
+  <!-- Crossbar: connection / interface. -->
+  <rect x="92" y="158" width="72" height="18" fill="#2F6FED"/>
+</svg>

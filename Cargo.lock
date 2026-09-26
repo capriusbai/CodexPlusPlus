@@ -9,6 +9,76 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "320119579fcad9c21884f5c4861d16174d0e06250625266f50fe6898340abefa"
 
 [[package]]
+name = "aethercodex-core"
+version = "2.0.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "base64 0.22.1",
+ "directories",
+ "fs2",
+ "futures-util",
+ "reqwest 0.12.28",
+ "rusqlite",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "thiserror 2.0.18",
+ "tokio",
+ "tokio-tungstenite",
+ "toml 0.8.2",
+ "toml_edit 0.22.27",
+ "windows 0.58.0",
+]
+
+[[package]]
+name = "aethercodex-data"
+version = "2.0.0"
+dependencies = [
+ "aethercodex-core",
+ "anyhow",
+ "base64 0.22.1",
+ "chrono",
+ "rusqlite",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "thiserror 2.0.18",
+ "uuid",
+]
+
+[[package]]
+name = "aethercodex-launcher"
+version = "2.0.0"
+dependencies = [
+ "aethercodex-core",
+ "aethercodex-data",
+ "anyhow",
+ "async-trait",
+ "directories",
+ "serde_json",
+ "tokio",
+ "winresource",
+]
+
+[[package]]
+name = "aethercodex-manager"
+version = "2.0.0"
+dependencies = [
+ "aethercodex-core",
+ "aethercodex-data",
+ "anyhow",
+ "async-trait",
+ "directories",
+ "serde",
+ "serde_json",
+ "tauri",
+ "tauri-build",
+ "tauri-plugin-dialog",
+ "tempfile",
+]
+
+[[package]]
 name = "ahash"
 version = "0.8.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -348,76 +418,6 @@ dependencies = [
  "num-traits",
  "serde",
  "windows-link 0.2.1",
-]
-
-[[package]]
-name = "codex-plus-core"
-version = "1.3.0"
-dependencies = [
- "anyhow",
- "async-trait",
- "base64 0.22.1",
- "directories",
- "fs2",
- "futures-util",
- "reqwest 0.12.28",
- "rusqlite",
- "serde",
- "serde_json",
- "tempfile",
- "thiserror 2.0.18",
- "tokio",
- "tokio-tungstenite",
- "toml 0.8.2",
- "toml_edit 0.22.27",
- "windows 0.58.0",
-]
-
-[[package]]
-name = "codex-plus-data"
-version = "1.3.0"
-dependencies = [
- "anyhow",
- "base64 0.22.1",
- "chrono",
- "codex-plus-core",
- "rusqlite",
- "serde",
- "serde_json",
- "tempfile",
- "thiserror 2.0.18",
- "uuid",
-]
-
-[[package]]
-name = "codex-plus-launcher"
-version = "1.3.0"
-dependencies = [
- "anyhow",
- "async-trait",
- "codex-plus-core",
- "codex-plus-data",
- "directories",
- "serde_json",
- "tokio",
- "winresource",
-]
-
-[[package]]
-name = "codex-plus-manager"
-version = "1.3.0"
-dependencies = [
- "anyhow",
- "async-trait",
- "codex-plus-core",
- "codex-plus-data",
- "directories",
- "serde",
- "serde_json",
- "tauri",
- "tauri-build",
- "tauri-plugin-dialog",
- "tempfile",
 ]
 
 [[package]]

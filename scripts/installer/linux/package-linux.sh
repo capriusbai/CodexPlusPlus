@@ -11,15 +11,18 @@ VERSION="${1:-0.0.0}"
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 DIST="$ROOT/dist/linux"
 BINARY_DIR="${BINARY_DIR:-$ROOT/target/release}"
-ICON_SOURCE="$ROOT/apps/codex-plus-manager/src-tauri/icons/icon.png"
+ICON_SOURCE="$ROOT/apps/aethercodex-manager/src-tauri/icons/icon.png"
 
-SILENT_BINARY="codex-plus-plus"
-MANAGER_BINARY="codex-plus-plus-manager"
-PACKAGE_NAME="codex-plus-plus"
-ICON_NAME="codex-plus-plus"
+SILENT_BINARY="aethercodex"
+MANAGER_BINARY="aethercodex-manager"
+PACKAGE_NAME="aethercodex"
+ICON_NAME="aethercodex"
 INSTALL_PREFIX="/usr/lib/$PACKAGE_NAME"
-MAINTAINER="BigPizzaV3 <1727532@qq.com>"
-HOMEPAGE="https://github.com/BigPizzaV3/CodexPlusPlus"
+MAINTAINER="Archai <haobai@gmail.com>"
+HOMEPAGE="https://github.com/capriusbai/CodexPlusPlus"
+# Package name shipped before the rename to AetherCodex. Declared below so
+# apt replaces it cleanly instead of fighting over /usr/bin symlinks.
+LEGACY_PACKAGE_NAME="codex-plus-plus"
 
 host_deb_arch() {
   if command -v dpkg >/dev/null 2>&1; then
@@ -46,9 +49,9 @@ case "$ARCH_INPUT" in
 esac
 
 STAGE="$DIST/stage/$PACKAGE_NAME-$VERSION-$DEB_ARCH"
-TARBALL_NAME="CodexPlusPlus-$VERSION-linux-$ASSET_ARCH"
+TARBALL_NAME="AetherCodex-$VERSION-linux-$ASSET_ARCH"
 TARBALL_STAGE="$DIST/stage/$TARBALL_NAME"
-DEB="$DIST/CodexPlusPlus-$VERSION-linux-$ASSET_ARCH.deb"
+DEB="$DIST/AetherCodex-$VERSION-linux-$ASSET_ARCH.deb"
 TARBALL="$DIST/$TARBALL_NAME.tar.gz"
 
 for binary in "$SILENT_BINARY" "$MANAGER_BINARY"; do
@@ -71,19 +74,19 @@ desktop_entry() {
   printf 'Version=1.0\n'
   printf 'Name=%s\n' "$name"
   if [ "$manager" = "true" ]; then
-    printf 'Name[zh_CN]=Codex++ 管理工具\n'
-    printf 'GenericName=Codex++ control panel\n'
-    printf 'GenericName[zh_CN]=Codex++ 管理工具\n'
-    printf 'Comment=Launch, repair, configure and update the Codex++ enhancements\n'
-    printf 'Comment[zh_CN]=启动、检查、修复、更新 Codex++ 增强功能\n'
+    printf 'Name[zh_CN]=AetherCodex 管理工具\n'
+    printf 'GenericName=AetherCodex control panel\n'
+    printf 'GenericName[zh_CN]=AetherCodex 管理工具\n'
+    printf 'Comment=Launch, repair, configure and update the AetherCodex enhancements\n'
+    printf 'Comment[zh_CN]=启动、检查、修复、更新 AetherCodex 增强功能\n'
     printf 'Exec="%s" %%U\n' "$exec_path"
     printf 'StartupNotify=true\n'
     printf 'StartupWMClass=%s\n' "$MANAGER_BINARY"
   else
-    printf 'GenericName=Codex++ silent launcher\n'
-    printf 'GenericName[zh_CN]=Codex++ 静默启动入口\n'
-    printf 'Comment=Start Codex and inject the Codex++ enhancements\n'
-    printf 'Comment[zh_CN]=启动 Codex 并注入 Codex++ 增强功能\n'
+    printf 'GenericName=AetherCodex silent launcher\n'
+    printf 'GenericName[zh_CN]=AetherCodex 静默启动入口\n'
+    printf 'Comment=Start Codex and inject the AetherCodex enhancements\n'
+    printf 'Comment[zh_CN]=启动 Codex 并注入 AetherCodex 增强功能\n'
     printf 'Exec="%s"\n' "$exec_path"
     printf 'StartupNotify=false\n'
   fi
@@ -109,9 +112,9 @@ stage_payload() {
   fi
 
   mkdir -p "$root/usr/share/applications"
-  desktop_entry "Codex++" "$exec_prefix/$SILENT_BINARY" false \
+  desktop_entry "AetherCodex" "$exec_prefix/$SILENT_BINARY" false \
     > "$root/usr/share/applications/$PACKAGE_NAME.desktop"
-  desktop_entry "Codex++ Manager" "$exec_prefix/$MANAGER_BINARY" true \
+  desktop_entry "AetherCodex Manager" "$exec_prefix/$MANAGER_BINARY" true \
     > "$root/usr/share/applications/$PACKAGE_NAME-manager.desktop"
   chmod 0644 "$root/usr/share/applications/$PACKAGE_NAME.desktop" \
     "$root/usr/share/applications/$PACKAGE_NAME-manager.desktop"
@@ -134,11 +137,15 @@ build_deb() {
   mkdir -p "$STAGE/usr/share/doc/$PACKAGE_NAME"
   cat > "$STAGE/usr/share/doc/$PACKAGE_NAME/copyright" <<COPYRIGHT
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
-Upstream-Name: Codex++
+Upstream-Name: AetherCodex
 Source: $HOMEPAGE
 
 Files: *
-Copyright: BigPizzaV3
+Copyright: 2026 Archai
+           2025-2026 BigPizzaV3
+Comment: AetherCodex is a rebranded fork of Codex++ by BigPizzaV3
+ (https://github.com/BigPizzaV3/CodexPlusPlus). The upstream copyright notice
+ is retained as the MIT licence requires.
 License: MIT
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -159,7 +166,7 @@ License: MIT
  SOFTWARE.
 COPYRIGHT
 
-  printf 'codex-plus-plus (%s) stable; urgency=medium\n\n  * Codex++ %s\n\n -- %s  %s\n' \
+  printf '%s (%s) stable; urgency=medium\n\n  * AetherCodex %s\n\n -- %s  %s\n' "$PACKAGE_NAME" \
     "$VERSION" "$VERSION" "$MAINTAINER" "$(date -R)" \
     | gzip -9n > "$STAGE/usr/share/doc/$PACKAGE_NAME/changelog.Debian.gz"
   chmod 0644 "$STAGE/usr/share/doc/$PACKAGE_NAME/changelog.Debian.gz" \
@@ -177,15 +184,18 @@ Architecture: $DEB_ARCH
 Maintainer: $MAINTAINER
 Homepage: $HOMEPAGE
 Installed-Size: $installed_size
+Conflicts: $LEGACY_PACKAGE_NAME
+Replaces: $LEGACY_PACKAGE_NAME
+Provides: $LEGACY_PACKAGE_NAME
 Depends: libc6, libcairo2, libdbus-1-3, libgdk-pixbuf-2.0-0 | libgdk-pixbuf2.0-0, libglib2.0-0t64 | libglib2.0-0, libgtk-3-0t64 | libgtk-3-0, libjavascriptcoregtk-4.1-0, libsoup-3.0-0, libwebkit2gtk-4.1-0
 Recommends: xdg-utils
 Description: External enhancement launcher and manager for the Codex App
- Codex++ starts the Codex App from an external launcher and injects its
+ AetherCodex starts the Codex App from an external launcher and injects its
  enhancement scripts over the Chromium DevTools Protocol, leaving the original
  Codex installation untouched.
  .
- The package installs two entry points: "Codex++", a silent launcher that only
- starts Codex and injects the enhancements, and "Codex++ Manager", a control
+ The package installs two entry points: "AetherCodex", a silent launcher that only
+ starts Codex and injects the enhancements, and "AetherCodex Manager", a control
  panel for launching, checking, repairing, updating, configuring relay
  injection and managing user scripts.
 CONTROL
@@ -247,37 +257,37 @@ build_tarball() {
 
   cat > "$TARBALL_STAGE/install.sh" <<'INSTALL'
 #!/usr/bin/env sh
-# Install Codex++ for the current user only (no root required).
+# Install AetherCodex for the current user only (no root required).
 set -eu
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
 PREFIX="${PREFIX:-$HOME/.local}"
-APP_DIR="$PREFIX/lib/codex-plus-plus"
+APP_DIR="$PREFIX/lib/aethercodex"
 
 mkdir -p "$APP_DIR" "$PREFIX/bin"
-cp -f "$HERE/bin/codex-plus-plus" "$HERE/bin/codex-plus-plus-manager" "$APP_DIR/"
-cp -f "$HERE/bin/codex-plus-plus.png" "$APP_DIR/"
-chmod 0755 "$APP_DIR/codex-plus-plus" "$APP_DIR/codex-plus-plus-manager"
+cp -f "$HERE/bin/aethercodex" "$HERE/bin/aethercodex-manager" "$APP_DIR/"
+cp -f "$HERE/bin/aethercodex.png" "$APP_DIR/"
+chmod 0755 "$APP_DIR/aethercodex" "$APP_DIR/aethercodex-manager"
 if [ -d "$HERE/bin/user_scripts" ]; then
   rm -rf "$APP_DIR/user_scripts"
   cp -R "$HERE/bin/user_scripts" "$APP_DIR/user_scripts"
 fi
-ln -sf "$APP_DIR/codex-plus-plus" "$PREFIX/bin/codex-plus-plus"
-ln -sf "$APP_DIR/codex-plus-plus-manager" "$PREFIX/bin/codex-plus-plus-manager"
+ln -sf "$APP_DIR/aethercodex" "$PREFIX/bin/aethercodex"
+ln -sf "$APP_DIR/aethercodex-manager" "$PREFIX/bin/aethercodex-manager"
 
 # The manager owns the desktop entries and the icon theme, so let it write
 # them; this keeps a tarball install and a .deb install in sync.
-if ! "$APP_DIR/codex-plus-plus-manager" --install-entrypoints; then
+if ! "$APP_DIR/aethercodex-manager" --install-entrypoints; then
   cat <<NOTE
 Could not create the application menu entries automatically.
 Check the runtime dependencies first:
   sudo apt install libwebkit2gtk-4.1-0 libgtk-3-0t64 xdg-utils
 then run:
-  $APP_DIR/codex-plus-plus-manager --install-entrypoints
+  $APP_DIR/aethercodex-manager --install-entrypoints
 NOTE
 fi
 
-echo "Codex++ installed to $APP_DIR"
+echo "AetherCodex installed to $APP_DIR"
 INSTALL
 
   cat > "$TARBALL_STAGE/uninstall.sh" <<'UNINSTALL'
@@ -285,22 +295,22 @@ INSTALL
 set -eu
 
 PREFIX="${PREFIX:-$HOME/.local}"
-APP_DIR="$PREFIX/lib/codex-plus-plus"
+APP_DIR="$PREFIX/lib/aethercodex"
 DATA_DIR="${XDG_DATA_HOME:-$HOME/.local/share}"
 
-rm -f "$PREFIX/bin/codex-plus-plus" "$PREFIX/bin/codex-plus-plus-manager"
-rm -f "$DATA_DIR/applications/codex-plus-plus.desktop" \
-      "$DATA_DIR/applications/codex-plus-plus-manager.desktop"
-rm -f "$DATA_DIR/icons/hicolor/256x256/apps/codex-plus-plus.png"
+rm -f "$PREFIX/bin/aethercodex" "$PREFIX/bin/aethercodex-manager"
+rm -f "$DATA_DIR/applications/aethercodex.desktop" \
+      "$DATA_DIR/applications/aethercodex-manager.desktop"
+rm -f "$DATA_DIR/icons/hicolor/256x256/apps/aethercodex.png"
 rm -rf "$APP_DIR"
 
-echo "Codex++ removed from $APP_DIR (settings in ~/.codex-session-delete were kept)"
+echo "AetherCodex removed from $APP_DIR (settings in ~/.aethercodex were kept)"
 UNINSTALL
 
   chmod 0755 "$TARBALL_STAGE/install.sh" "$TARBALL_STAGE/uninstall.sh"
 
   cat > "$TARBALL_STAGE/README.txt" <<README
-Codex++ $VERSION — Linux ($ASSET_ARCH)
+AetherCodex $VERSION — Linux ($ASSET_ARCH)
 
 Runtime requirements (Ubuntu 24.04 / 26.04, Debian 13+):
   sudo apt install libwebkit2gtk-4.1-0 libgtk-3-0t64 xdg-utils
@@ -312,8 +322,8 @@ Remove:
   ./uninstall.sh
 
 Binaries:
-  bin/codex-plus-plus          silent launcher (starts Codex, injects Codex++)
-  bin/codex-plus-plus-manager  control panel
+  bin/aethercodex          silent launcher (starts Codex, injects AetherCodex)
+  bin/aethercodex-manager  control panel
 
 $HOMEPAGE
 README
